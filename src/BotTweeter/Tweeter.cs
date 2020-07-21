@@ -1,9 +1,6 @@
 ﻿using LinqToTwitter;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
 using System.Linq;
 
 namespace BotTweeter
@@ -38,73 +35,6 @@ namespace BotTweeter
             };
 
             _context = new TwitterContext(auth);
-        }
-
-        public void Menu()
-        {
-            Int32 numberOfTweets = 20;
-            Boolean keyValueSuccess = false;
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.BackgroundColor = ConsoleColor.DarkBlue;
-
-            while (true)
-            {
-                Console.Clear();
-
-                Console.WriteLine("Wisdom of Avasarala");
-                Console.WriteLine();
-                Console.WriteLine("Options:");
-                Console.WriteLine($"1: Check {AVASARALA_ID} mentions");
-                Console.WriteLine($"2: Search for {AVASARALA_NAME}");
-                Console.WriteLine($"3: Search for {AVASARALA_TAG}");
-                Console.WriteLine($"4: Get last {numberOfTweets} tweets from {AVASARALA_ID}");
-                Console.WriteLine("5: Test tweet some wisdom (not implemented)");
-                Console.WriteLine("6: Tweet some wisdom (not implemented)");
-                Console.WriteLine();
-                Console.WriteLine("<ESC>: Quit");
-
-                ConsoleKeyInfo keyInfo = Console.ReadKey(false);
-                if (keyInfo.Key == ConsoleKey.Escape)
-                    return;
-
-                var keyChar = keyInfo.KeyChar;
-                Int32 keyValue;
-                keyValueSuccess = Int32.TryParse(keyChar.ToString(), out keyValue);
-
-                if (keyValue == 1)
-                {
-                    GetTweets(AVASARALA_ID);
-                    PressAKey();
-                }
-                else if (keyValue == 2)
-                {
-                    GetTweets(AVASARALA_NAME);
-                    PressAKey();
-                }
-                else if (keyValue == 3)
-                {
-                    GetTweets(AVASARALA_TAG);
-                    PressAKey();
-                }
-                else if (keyValue == 4)
-                {
-                    GetTweetsFrom(AVASARALA_ID, numberOfTweets);
-                    PressAKey();
-                }
-                else if (keyValue == 5)
-                {
-                    var tweetText = "";
-                    MaybeTweet(tweetText, false);
-                    PressAKey();
-                }
-                else if (keyValue == 6)
-                {
-                    var tweetText = "";
-                    MaybeTweet(tweetText, true);
-                    PressAKey();
-                }
-            }
         }
 
         public void GetTweets(String searchText, Int32 numberOfTweets=100)
@@ -184,14 +114,6 @@ namespace BotTweeter
             {
                 Console.WriteLine(ex.Message);
             }
-        }
-
-        public void PressAKey()
-        {
-            Console.WriteLine();
-            Console.WriteLine("Press a key to continue.");
-
-            Console.ReadKey(false);
         }
     }
 }
