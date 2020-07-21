@@ -8,8 +8,8 @@ namespace BotConsole
         static void Main(string[] args)
         {
             // Console.WriteLine("Hello World!");
-            var tweeter = new BotTweeter.Tweeter();
-            tweeter.Menu();
+            var menu = new Menu();
+            menu.ShowMenu();
         }
     }
 }
