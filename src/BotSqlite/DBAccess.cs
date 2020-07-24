@@ -20,11 +20,11 @@ namespace APCSP_Final_Project
             long result = connection.Query<long>(sql).First();
             return result;
         }
-        public List<Tweet> GetCards(long count)
-        {
-            string sql = "SELECT Id, Name, Artist, Flavortext FROM cards LIMIT @Count";
-            List<Tweet> result = connection.Query<Tweet>(sql, new { Count = count }).AsList();
-            return result;
-        }
+        // public List<Tweet> GetCards(long count)
+        // {
+        //     string sql = "SELECT Id, Name, Artist, Flavortext FROM cards LIMIT @Count";
+        //     List<Tweet> result = connection.Query<Tweet>(sql, new { Count = count }).AsList();
+        //     return result;
+        // }
     }
 }
