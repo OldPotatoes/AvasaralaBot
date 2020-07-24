@@ -8,9 +8,16 @@ namespace BotSqlite
 {
     public class TestDbProcess
     {
+        private SQLiteConnection connection;
+        private string dbConnectionString; // = @"Data Source = D:\Code\WisdomOfAvasarala.db";
+
+        public TestDbProcess(String DbConn)
+        {
+            dbConnectionString = DbConn;
+        }
+
         public void DoSomething()
         {
-            Console.WriteLine("Big Database Work Happening Right Now...");
             DatabaseAccess();
             long count = CountNumQuote();
             Console.WriteLine("Number of rows = " + count);
@@ -21,9 +28,6 @@ namespace BotSqlite
             }
         }
         
-        private SQLiteConnection connection;
-        private string dbConnectionString = @"Data Source = D:\Code\WisdomOfAvasarala.db";
-
         public void DatabaseAccess()
         {
             connection = new SQLiteConnection(dbConnectionString);

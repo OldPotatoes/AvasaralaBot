@@ -6,6 +6,12 @@ namespace BotConsole
 {
     public class Menu
     {
+        public String DatabaseConnectionString { get; set; }
+
+        public Menu(String DbConn)
+        {
+            DatabaseConnectionString = DbConn;
+        }
 
         public void ShowMenu()
         {
@@ -76,7 +82,7 @@ namespace BotConsole
                 }
                 else if (keyValue == 7)
                 {
-                    var testDb = new TestDbProcess();
+                    var testDb = new TestDbProcess(DatabaseConnectionString);
                     testDb.DoSomething();
                     PressAKey();
                 }
