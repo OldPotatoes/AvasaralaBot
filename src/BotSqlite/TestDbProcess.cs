@@ -24,11 +24,18 @@ namespace BotSqlite
             int indexQueryInt;
             Int32.TryParse(indexQuery, out indexQueryInt);
             var indexQuotes = GetSpecificQuote(indexQueryInt);
-            foreach(var indexQuote in indexQuotes)
+            if (indexQueryInt < 1)
             {
-                Console.WriteLine(indexQuote);
+                foreach(var indexQuote in indexQuotes)
+                {
+                    Console.WriteLine(indexQuote);
+                }
             }
-
+            else
+            {
+                Console.WriteLine("Please input a number greater than zero");
+            }
+            GetRandomQuote();
         }
         
         private SQLiteConnection connection;
@@ -57,6 +64,15 @@ namespace BotSqlite
             List<Quote> result = connection.Query<Quote>(sql, new { Index = indexQueryInt }).AsList();
             return result;
         }
-
+        public List<Quote> GetRandomQuote()
+        {
+            int maxQuotesInt;
+            string maxQuotes = "SELECT MAX(Id) FROM WisdomOfAvasarala";
+            Int32.TryParse(maxQuotes, out maxQuotesInt);
+            var rand = new Random(maxQuotesInt);
+            string sql = "SELECT Book, Chapter, Page, Quote FROM WisdomOfAvasarala WHERE Id = @rand";
+            List<Quote> result = connection.Query<Quote>(sql, new { Index = rand }).AsList();
+            return result;
+        }
     }
 }
