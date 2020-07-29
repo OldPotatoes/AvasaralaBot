@@ -36,7 +36,6 @@ namespace BotConsole
                 Console.WriteLine($"4: Get last {numberOfTweets} tweets from {tweeter.AVASARALA_ID}");
                 Console.WriteLine("5: Test tweet some wisdom (not implemented)");
                 Console.WriteLine("6: Tweet some wisdom (not implemented)");
-                Console.WriteLine("7: Test the DB");
                 Console.WriteLine();
                 Console.WriteLine("<ESC>: Quit");
 
@@ -70,20 +69,16 @@ namespace BotConsole
                 }
                 else if (keyValue == 5)
                 {
-                    var tweetText = "";
+                    DatabaseAccess dbAccess = new DatabaseAccess(DatabaseConnectionString);
+                    string tweetText = dbAccess.GetRandomQuote();
                     tweeter.MaybeTweet(tweetText, false);
                     PressAKey();
                 }
                 else if (keyValue == 6)
                 {
-                    var tweetText = "";
+                    DatabaseAccess dbAccess = new DatabaseAccess(DatabaseConnectionString);
+                    string tweetText = dbAccess.GetRandomQuote();
                     tweeter.MaybeTweet(tweetText, true);
-                    PressAKey();
-                }
-                else if (keyValue == 7)
-                {
-                    var testDb = new TestDbProcess(DatabaseConnectionString);
-                    testDb.DoSomething();
                     PressAKey();
                 }
             }
