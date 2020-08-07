@@ -8,23 +8,11 @@ namespace APCSP_Final_Project
     class DatabaseAccess
     {
         private SQLiteConnection connection;
+        private string dbConnectionString; // = @"Data Source = D:\Code\WisdomOfAvasarala.db";
 
-        public DatabaseAccess()
+        public TestDbProcess(String DbConn)
         {
-            connection = new SQLiteConnection("Data Source=" + @"..\..\..\Data\AllSets.sqlite");
+            dbConnectionString = DbConn;
         }
-
-        public long CountCards()
-        {
-            string sql = "SELECT COUNT(*) FROM cards";
-            long result = connection.Query<long>(sql).First();
-            return result;
-        }
-        // public List<Tweet> GetCards(long count)
-        // {
-        //     string sql = "SELECT Id, Name, Artist, Flavortext FROM cards LIMIT @Count";
-        //     List<Tweet> result = connection.Query<Tweet>(sql, new { Count = count }).AsList();
-        //     return result;
-        // }
     }
 }

@@ -2,6 +2,7 @@ namespace BotSqlite
 {
     public class Quote
     {
+        public int Id { get; set; }
         public string book { get; set; }
         public int chapter { get; set; }
         public int pageNum { get; set; }
