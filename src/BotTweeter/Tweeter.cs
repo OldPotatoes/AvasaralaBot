@@ -100,7 +100,7 @@ namespace BotTweeter
             try
             {
                 Status status;
-                if (mediaIds.Count == 0)
+                if (mediaIds == null || mediaIds.Count == 0)
                     status = _context.TweetAsync(tweetText).Result;
                 else
                     status = _context.TweetAsync(tweetText, mediaIds).Result;
