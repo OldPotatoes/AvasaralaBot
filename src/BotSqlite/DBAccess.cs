@@ -15,9 +15,10 @@ namespace BotSqlite
         public DatabaseAccess(string DbConn)
         {
             dbConnectionString = DbConn;
+            Console.WriteLine($"Database connection string: {dbConnectionString}");
             connection = new SQLiteConnection(dbConnectionString);
         }
-                public long CountNumQuote()
+        public long CountNumQuote()
         {
             string sql = "SELECT COUNT(*) FROM WisdomOfAvasarala";
             long result = connection.Query<long>(sql).First();
