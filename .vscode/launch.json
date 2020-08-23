@@ -10,7 +10,8 @@
              "request": "launch",
              "preLaunchTask": "build",
              // If you have changed target frameworks, make sure to update the program path.
-             "program": "${workspaceRoot}/src/BotConsole/bin/Debug/netcoreapp3.1/BotConsole.dll",
+             // "program": "${workspaceRoot}/src/BotConsole/bin/Debug/netcoreapp3.1/BotConsole.dll",
+             "program": "${workspaceRoot}/src/BotService/bin/Debug/netcoreapp3.1/BotService.exe",
              "args": [],
              "cwd": "${workspaceRoot}/src/BotConsole",
              // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
