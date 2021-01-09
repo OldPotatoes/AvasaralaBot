@@ -1,4 +1,5 @@
-﻿using LinqToTwitter;
+﻿using Amazon.Lambda.Core;
+using LinqToTwitter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,35 +10,23 @@ namespace BotTweeter
     {
         private readonly TwitterContext _context;
 
-        public readonly String API_KEY = "lcwwbboVACDsHPOkjkantPEQO";
-        public readonly String API_SECRET_KEY = "g2mzLY5koijxhAXPdBZCYMUme3zSUZ8Jhx5vtFu66AcNFv1uph";
-        public readonly String ACCESS_TOKEN = "1158127961108881408-C1zk9cVv5AbArrXcCStIIKMSn3i1EI";
-        public readonly String ACCESS_TOKEN_SECRET = "zXqcQCSxvQ6fTTevzfdrGLi19Op35GXjimXkW1IMRXDPD";
-
-        // public readonly String AVASARALA_ID = "@AvasaralaBot";
-        public readonly String AVASARALA_ID = "@JamieTheDyer";
-        public readonly String AVASARALA_NAME = @"""Chrisjen Avasarala""";
-        // public readonly String AVASARALA_TAG = "#WhatWouldAvasaralaSay";
-        // public readonly String AVASARALA_TAG = "#whatwouldavasaralado";
-        public readonly String AVASARALA_TAG = "#caturday";
-
-        public Tweeter()
+        public Tweeter(String apiKey, String apiSecretKey, String accessToken, String accessTokenSecret)
         {
             var auth = new SingleUserAuthorizer
             {
                 CredentialStore = new SingleUserInMemoryCredentialStore
                 {
-                    ConsumerKey = API_KEY,
-                    ConsumerSecret = API_SECRET_KEY,
-                    AccessToken = ACCESS_TOKEN,
-                    AccessTokenSecret = ACCESS_TOKEN_SECRET
+                    ConsumerKey = apiKey,
+                    ConsumerSecret = apiSecretKey,
+                    AccessToken = accessToken,
+                    AccessTokenSecret = accessTokenSecret
                 }
             };
 
             _context = new TwitterContext(auth);
         }
 
-        public void GetTweets(String searchText, Int32 numberOfTweets=100)
+        public List<Status> GetTweets(String searchText, Int32 numberOfTweets=100)
         {
             var searchResponse =
                 (from search in _context.Search
@@ -49,16 +38,7 @@ namespace BotTweeter
                        search.Count == numberOfTweets
                  select search).SingleOrDefault();
 
-            foreach (var tweet in searchResponse.Statuses)
-            {
-                if (tweet.Retweeted)
-                    continue;
-
-                Console.WriteLine();
-                Console.WriteLine($"From: {tweet.User.ScreenNameResponse}, Likes: {tweet.FavoriteCount}, Retweets: {tweet.RetweetCount}, Date: {tweet.CreatedAt}");
-                Console.WriteLine($"{tweet.FullText}");
-                Console.WriteLine();
-            }
+            return searchResponse.Statuses;
         }
 
         public void GetTweetsFrom(String tweeter, Int32 numberOfTweets=100)
@@ -70,14 +50,6 @@ namespace BotTweeter
                        search.TweetMode == TweetMode.Extended &&
                        search.Count == numberOfTweets
                  select search).ToList();
-
-            foreach (Status tweet in tweetList)
-            {
-                Console.WriteLine();
-                Console.WriteLine($"From: {tweet.User.ScreenNameResponse}, Likes: {tweet.FavoriteCount}, Retweets: {tweet.RetweetCount}, Date: {tweet.CreatedAt}");
-                Console.WriteLine($"{tweet.FullText}");
-                Console.WriteLine();
-            }
         }
 
         public void MaybeTweet(String tweetText, Boolean actuallyTweet)
@@ -85,12 +57,11 @@ namespace BotTweeter
             if (actuallyTweet)
             {
                 Tweet(tweetText, null);
+                LambdaLogger.Log($"Actually tweeted: {tweetText}\n");
             }
             else
             {
-                Console.WriteLine();
-                Console.WriteLine("Not actually tweeted:");
-                Console.WriteLine(tweetText);
+                LambdaLogger.Log($"Not actually tweeted: {tweetText}\n");
             }
         }
 
@@ -107,12 +78,12 @@ namespace BotTweeter
 
                 if (status == null)
                 {
-                    Console.WriteLine("Tweet failed to process, but API did not report an error");
+                    LambdaLogger.Log("Tweet failed to process, but API did not report an error\n");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                LambdaLogger.Log($"Exception: {ex.Message}\n");
             }
         }
     }

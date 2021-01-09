@@ -1,0 +1,24 @@
+
+{
+    "Information" : [
+        "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
+        "To learn more about the Lambda commands with the .NET Core CLI execute the following command at the command line in the project root directory.",
+        "dotnet lambda help",
+        "All the command line options for the Lambda command can be specified in this file."
+    ],
+    "profile"     : "power-drone",
+    "region"      : "us-east-1",
+    "configuration" : "Debug",
+    "framework"     : "netcoreapp3.1",
+    "function-runtime" : "dotnetcore3.1",
+    "function-memory-size" : 256,
+    "function-timeout"     : 30,
+    "function-handler"     : "AvasaralaBot-AWSLambda::AvasaralaBot_AWSLambda.Function::FunctionHandler",
+    "function-name"        : "AvasaralaBot",
+    "function-description" : "Twitter bot that tweets the words of Chrisjen Avasarala",
+    "package-type"         : "Zip",
+    "function-role"        : "arn:aws:iam::145201272265:role/service-role/avasarala-bot-role-838aahdi",
+    "tracing-mode"         : "PassThrough",
+    "environment-variables" : "\"ApiSecretKey\"=\"nRTHbp5pqXkHl6RmGgMIpiwSQZwdw8QFAKp7ayqxUWzia67X2t\";\"ApiKey\"=\"tFzyjhPRzrSekuogNj0TaMtfe\";\"AccessToken\"=\"1284552017403420675-viQ3FjXQoh8bq1bVsQPyniVgXS9iRd\";\"AccessTokenSecret\"=\"0JGQWtXTKYl5xfb9ISWwwO96LrPjFBcc1Syd7lOlMnTao\"",
+    "image-tag"             : ""
+}
