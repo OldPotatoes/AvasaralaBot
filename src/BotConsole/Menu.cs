@@ -34,8 +34,8 @@ namespace BotConsole
                 Console.WriteLine($"2: Search for {tweeter.AVASARALA_NAME}");
                 Console.WriteLine($"3: Search for {tweeter.AVASARALA_TAG}");
                 Console.WriteLine($"4: Get last {numberOfTweets} tweets from {tweeter.AVASARALA_ID}");
-                Console.WriteLine("5: Test tweet some wisdom (not implemented)");
-                Console.WriteLine("6: Tweet some wisdom (not implemented)");
+                Console.WriteLine("5: Test tweet some wisdom");
+                Console.WriteLine("6: Tweet some wisdom");
                 Console.WriteLine();
                 Console.WriteLine("<ESC>: Quit");
 
