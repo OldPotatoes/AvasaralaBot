@@ -25,7 +25,7 @@ namespace AvasaralaBot_AWSLambda
             String AccessToken = Environment.GetEnvironmentVariable("AccessToken");
             String AccessTokenSecret = Environment.GetEnvironmentVariable("AccessTokenSecret");
 
-            var db = new DBAccess(ApiKey, ApiSecretKey);
+            var db = new DBAccess();
 
             Int32 count = db.CountQuotes().Result;
             Int32 quoteIndex = new Random().Next(count) + 1;
