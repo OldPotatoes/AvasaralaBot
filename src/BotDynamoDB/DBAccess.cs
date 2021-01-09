@@ -14,7 +14,7 @@ namespace BotDynamoDB
         private readonly AmazonDynamoDBClient _client;
         private readonly DynamoDBContext _context;
 
-        public DBAccess(string ApiKey, string ApiSecretKey)
+        public DBAccess()
         {
             _client = new AmazonDynamoDBClient();
             _context = new DynamoDBContext(_client);
