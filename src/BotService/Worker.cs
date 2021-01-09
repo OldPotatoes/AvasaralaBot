@@ -11,6 +11,11 @@ using BotTweeter;
 
 namespace BotService
 {
+    const int SECOND = 1000;
+    const int MINUTE = SECOND * 60;
+    const int HOUR = MINUTE * 60;
+    const int DAY = HOUR * 24;
+
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
@@ -42,7 +47,7 @@ namespace BotService
                 var tweeter = new Tweeter(); 
                 tweeter.MaybeTweet(tweetText, actuallyTweeting);
 
-                await Task.Delay(10000, stoppingToken);
+                await Task.Delay(12*HOUR, stoppingToken);
             }
         }
 
