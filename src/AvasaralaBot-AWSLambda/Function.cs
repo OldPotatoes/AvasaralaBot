@@ -2,6 +2,8 @@ using Amazon.Lambda.Core;
 using BotDynamoDB;
 using BotTweeter;
 using System;
+using System.Collections.Generic;
+using LinqToTwitter;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -27,16 +29,61 @@ namespace AvasaralaBot_AWSLambda
 
             var db = new DBAccess();
 
-            Int32 count = db.CountQuotes().Result;
+            List<Quote> statements = db.GetAllStatements().Result;
+            Int32 count = statements.Count;
+
             Int32 quoteIndex = new Random().Next(count) + 1;
 
-            Quote quote = db.Single(quoteIndex).Result;
-            LambdaLogger.Log($"Quote {quoteIndex}: {quote.QuoteText}\n");
+            Quote quote = statements[quoteIndex];
+            LambdaLogger.Log($"Quote {quoteIndex}: {quote.quoteText}\n");
+            LambdaLogger.Log($"UUID: {quote.uuid}\n");
+            LambdaLogger.Log($"Medium: {quote.medium}\n");
+            LambdaLogger.Log($"Quality: {quote.quality}\n");
+            LambdaLogger.Log($"Polite: {quote.polite}\n");
 
             var tweeter = new Tweeter(ApiKey, ApiSecretKey, AccessToken, AccessTokenSecret);
-            tweeter.MaybeTweet(quote.QuoteText, true);
+            String tweet = String.Empty;
 
-            return quote.QuoteText;
+            tweet = DecideTweetText(quote);
+            UInt64 id = tweeter.MaybeTweet(tweet, true);
+
+            return quote.quoteText;
+        }
+
+        public String DecideTweetText(Quote quote)
+        {
+            String tweet = "";
+
+            if (quote.medium == "Book")
+            {
+                tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}\n#Avasarala #TheExpanse";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}\n#TheExpanse";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.book}";
+                if (tweet.Length > 280)
+                    tweet = quote.quoteText;
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText.Substring(0, 279)}…";
+            }
+            else if (quote.medium == "TV")
+            {
+                tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}\n#Avasarala #TheExpanse";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}\n#TheExpanse";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}";
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText}\n\n{quote.episode}";
+                if (tweet.Length > 280)
+                    tweet = quote.quoteText;
+                if (tweet.Length > 280)
+                    tweet = $"{quote.quoteText.Substring(0, 279)}…";
+            }
+
+            return tweet;
         }
 
     }
