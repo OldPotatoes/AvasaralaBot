@@ -52,22 +52,40 @@ namespace BotTweeter
                  select search).ToList();
         }
 
-        public void MaybeTweet(String tweetText, Boolean actuallyTweet)
+        public List<Status> GetTweetWithId(UInt64 tweetId)
         {
+            var tweetList =
+                (from search in _context.Status
+                 where search.Type == StatusType.User &&
+                       search.TweetMode == TweetMode.Extended &&
+                       search.StatusID == tweetId
+                 select search).ToList();
+
+            return tweetList;
+        }
+
+        public UInt64 MaybeTweet(String tweetText, Boolean actuallyTweet)
+        {
+            UInt64 id = 0;
+
             if (actuallyTweet)
             {
-                Tweet(tweetText, null);
+                id = Tweet(tweetText, null);
                 LambdaLogger.Log($"Actually tweeted: {tweetText}\n");
             }
             else
             {
                 LambdaLogger.Log($"Not actually tweeted: {tweetText}\n");
             }
+
+            return id;
         }
 
 
-        public void Tweet(String tweetText, List<UInt64> mediaIds)
+        public UInt64 Tweet(String tweetText, List<UInt64> mediaIds)
         {
+            UInt64 id = 0;
+
             try
             {
                 Status status;
@@ -80,11 +98,17 @@ namespace BotTweeter
                 {
                     LambdaLogger.Log("Tweet failed to process, but API did not report an error\n");
                 }
+                else
+                {
+                    id = status.StatusID;
+                }
             }
             catch (Exception ex)
             {
                 LambdaLogger.Log($"Exception: {ex.Message}\n");
             }
+
+            return id;
         }
     }
 }
