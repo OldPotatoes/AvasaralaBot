@@ -52,12 +52,11 @@ namespace AvasaralaBot_AWSLambda
             List<Status> tweets = tweeter.GetTweets("@SAghdashloo", 20);
             foreach (Status tweeted in tweets)
             {
-                //LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
-                //LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
-                //LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
-                //LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
+                LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
+                LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
+                LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
+                LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
 
-                // 3)     Get tweet ID
                 ulong tweetId = tweeted.StatusID;
 
                 // 4)     Get random reply
