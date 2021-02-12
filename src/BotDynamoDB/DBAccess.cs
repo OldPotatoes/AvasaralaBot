@@ -85,6 +85,64 @@ namespace BotDynamoDB
             return statements;
         }
 
+        public async Task<List<Quote>> GetAllResponses()
+        {
+            var responses = new List<Quote>();
+
+            var request = new ScanRequest
+            {
+                TableName = "WisdomOfAvasarala",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":s", new AttributeValue { S = "1" }},
+                    {":q", new AttributeValue { S = "4" }}
+                },
+                FilterExpression = "responses = :s AND quality <> :q"
+            };
+
+            var response = await _client.ScanAsync(request);
+
+            foreach (Dictionary<string, AttributeValue> item in response.Items)
+            {
+                var quote = new Quote();
+                Boolean found = false;
+
+                quote.medium = item["medium"].S;
+                if (quote.medium == "TV")
+                {
+                    quote.uuid = item["uuid"].S;
+                    quote.season = item["season"].S;
+                    quote.episode = item["episode"].S;
+                    quote.runningTime = item["runningTime"].S;
+                }
+                if (quote.medium == "Book")
+                {
+                    Int32 page = 0;
+                    found = Int32.TryParse(item["page"].S, out page);
+
+                    quote.uuid = item["uuid"].S;
+                    quote.book = item["book"].S;
+                    quote.chapter = item["chapter"].S;
+                    quote.page = (found ? page : 0);
+                }
+
+                Int32 quality = 0;
+                found = Int32.TryParse(item["quality"].S, out quality);
+
+                quote.quality = (found ? quality : 0);
+                quote.polite = item["polite"].S == "1";
+                quote.statement = item["statement"].S == "1";
+                quote.response = item["response"].S == "1";
+                quote.quoteText = item["quote"].S;
+
+                responses.Add(quote);
+            }
+
+            LambdaLogger.Log($"Statements Count: {responses.Count}\n");
+
+            return responses;
+        }
+
         public async Task<Int32> CountStatements()
         {
             var request = new ScanRequest

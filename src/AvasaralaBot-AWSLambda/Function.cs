@@ -30,21 +30,34 @@ namespace AvasaralaBot_AWSLambda
             var db = new DBAccess();
 
             List<Quote> statements = db.GetAllStatements().Result;
-            Int32 count = statements.Count;
+            Int32 statementsCount = statements.Count;
 
-            Int32 quoteIndex = new Random().Next(count) + 1;
+            Int32 statementsQuoteIndex = new Random().Next(statementsCount) + 1;
 
-            Quote quote = statements[quoteIndex];
-            LambdaLogger.Log($"Quote {quoteIndex}: {quote.quoteText}\n");
-            LambdaLogger.Log($"UUID: {quote.uuid}\n");
-            LambdaLogger.Log($"Medium: {quote.medium}\n");
-            LambdaLogger.Log($"Quality: {quote.quality}\n");
-            LambdaLogger.Log($"Polite: {quote.polite}\n");
+            Quote statementsQuote = statements[statementsQuoteIndex];
+            LambdaLogger.Log($"Quote {statementsQuoteIndex}: {statementsQuote.quoteText}\n");
+            LambdaLogger.Log($"UUID: {statementsQuote.uuid}\n");
+            LambdaLogger.Log($"Medium: {statementsQuote.medium}\n");
+            LambdaLogger.Log($"Quality: {statementsQuote.quality}\n");
+            LambdaLogger.Log($"Polite: {statementsQuote.polite}\n");
+
+            List<Quote> responses = db.GetAllResponses().Result;
+            Int32 responsesCount = responses.Count;
+
+            Int32 responsesQuoteIndex = new Random().Next(responsesCount) + 1;
+
+            Quote responsesQuote = responses[responsesQuoteIndex];
+            LambdaLogger.Log($"Quote {responsesQuoteIndex}: {responsesQuote.quoteText}\n");
+            LambdaLogger.Log($"UUID: {responsesQuote.uuid}\n");
+            LambdaLogger.Log($"Medium: {responsesQuote.medium}\n");
+            LambdaLogger.Log($"Quality: {responsesQuote.quality}\n");
+            LambdaLogger.Log($"Polite: {responsesQuote.polite}\n");
+
 
             var tweeter = new Tweeter(ApiKey, ApiSecretKey, AccessToken, AccessTokenSecret);
             String tweet = String.Empty;
 
-            tweet = DecideTweetText(quote);
+            tweet = DecideTweetText(responsesQuote);
             UInt64 id = tweeter.MaybeTweet(tweet, false);
 
             // Reply to a tweet...
@@ -63,7 +76,7 @@ namespace AvasaralaBot_AWSLambda
                 // 5)     ReplyAsync(ulong tweetID, string status)
             }
 
-            return quote.quoteText;
+            return responsesQuote.quoteText;
         }
 
         public String DecideTweetText(Quote quote)
