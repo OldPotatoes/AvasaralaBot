@@ -53,11 +53,12 @@ namespace AvasaralaBot_AWSLambda
             foreach (Status tweeted in tweets)
             {
                 LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
-                LambdaLogger.Log($"    ID: {tweeted.ID}\n");
-                LambdaLogger.Log($"    Text: {tweeted.Text}\n");
-                LambdaLogger.Log($"    User: {tweeted.ScreenName}\n");
                 LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
-                // 3)     Get tweet ID
+                LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
+                LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
+
+                ulong tweetId = tweeted.StatusID;
+
                 // 4)     Get random reply
                 // 5)     ReplyAsync(ulong tweetID, string status)
             }
