@@ -45,22 +45,24 @@ namespace AvasaralaBot_AWSLambda
             String tweet = String.Empty;
 
             tweet = DecideTweetText(quote);
-            UInt64 id = tweeter.MaybeTweet(tweet, false);
+            UInt64 id = tweeter.MaybeTweet(tweet, true);
 
-            // Reply to a tweet...
+            //// Reply to a tweet...
 
-            List<Status> tweets = tweeter.GetTweets("@SAghdashloo", 20);
-            foreach (Status tweeted in tweets)
-            {
-                LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
-                LambdaLogger.Log($"    ID: {tweeted.ID}\n");
-                LambdaLogger.Log($"    Text: {tweeted.Text}\n");
-                LambdaLogger.Log($"    User: {tweeted.ScreenName}\n");
-                LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
-                // 3)     Get tweet ID
-                // 4)     Get random reply
-                // 5)     ReplyAsync(ulong tweetID, string status)
-            }
+            //List<Status> tweets = tweeter.GetTweets("@SAghdashloo", 20);
+            //foreach (Status tweeted in tweets)
+            //{
+            //    //LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
+            //    //LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
+            //    //LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
+            //    //LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
+
+            //    // 3)     Get tweet ID
+            //    ulong tweetId = tweeted.StatusID;
+
+            //    // 4)     Get random reply
+            //    // 5)     ReplyAsync(ulong tweetID, string status)
+            //}
 
             return quote.quoteText;
         }
