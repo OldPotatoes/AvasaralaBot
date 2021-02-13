@@ -18,7 +18,7 @@ namespace BotDynamoDB
         public int quality { get; set; }
         public bool polite { get; set; }
         public bool statement { get; set; }
-        public bool response { get; set; }
+        public bool reply { get; set; }
 
         [DynamoDBProperty("quote")]
         public string quoteText { get; set; }

@@ -81,7 +81,6 @@ namespace BotTweeter
             return id;
         }
 
-
         public UInt64 Tweet(String tweetText, List<UInt64> mediaIds)
         {
             UInt64 id = 0;
@@ -97,6 +96,53 @@ namespace BotTweeter
                 if (status == null)
                 {
                     LambdaLogger.Log("Tweet failed to process, but API did not report an error\n");
+                }
+                else
+                {
+                    id = status.StatusID;
+                }
+            }
+            catch (Exception ex)
+            {
+                LambdaLogger.Log($"Exception: {ex.Message}\n");
+            }
+
+            return id;
+        }
+
+        public UInt64 MaybeReply(String tweetText, ulong tweetId, Boolean actuallyTweet)
+        {
+            UInt64 id = 0;
+
+            if (actuallyTweet)
+            {
+                id = Reply(tweetText, tweetId, null);
+                LambdaLogger.Log($"Actually replied: {tweetText}\n");
+            }
+            else
+            {
+                LambdaLogger.Log($"Not actually replied: {tweetText}\n");
+            }
+
+            return id;
+        }
+
+
+        public UInt64 Reply(String tweetText, ulong tweetId, List<UInt64> mediaIds)
+        {
+            UInt64 id = 0;
+
+            try
+            {
+                Status status;
+                if (mediaIds == null || mediaIds.Count == 0)
+                    status = _context.ReplyAsync(tweetId, tweetText).Result;
+                else
+                    status = _context.ReplyAsync(tweetId, tweetText, mediaIds).Result;
+
+                if (status == null)
+                {
+                    LambdaLogger.Log("Reply failed to process, but API did not report an error\n");
                 }
                 else
                 {

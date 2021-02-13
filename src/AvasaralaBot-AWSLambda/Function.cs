@@ -12,6 +12,8 @@ namespace AvasaralaBot_AWSLambda
 {
     public class Function
     {
+        const Boolean ActuallyTweet = true;
+        const String SearchText = "@SAghdashloo";
         /// <summary>
         /// A simple function that takes a string and does a ToUpper
         /// </summary>
@@ -28,55 +30,41 @@ namespace AvasaralaBot_AWSLambda
             String AccessTokenSecret = Environment.GetEnvironmentVariable("AccessTokenSecret");
 
             var db = new DBAccess();
+            List<Quote> statementsList = db.GetAllStatements().Result;
+            Int32 count = statementsList.Count;
+            Int32 quoteIndex = new Random().Next(count) + 1;
 
-            List<Quote> statements = db.GetAllStatements().Result;
-            Int32 statementsCount = statements.Count;
+            Quote statement = statementsList[quoteIndex];
+            LambdaLogger.Log($"Quote {quoteIndex}: {statement.quoteText}\n");
 
-            Int32 statementsQuoteIndex = new Random().Next(statementsCount) + 1;
-
-            Quote statementsQuote = statements[statementsQuoteIndex];
-            LambdaLogger.Log($"Quote {statementsQuoteIndex}: {statementsQuote.quoteText}\n");
-            LambdaLogger.Log($"UUID: {statementsQuote.uuid}\n");
-            LambdaLogger.Log($"Medium: {statementsQuote.medium}\n");
-            LambdaLogger.Log($"Quality: {statementsQuote.quality}\n");
-            LambdaLogger.Log($"Polite: {statementsQuote.polite}\n");
-
-            List<Quote> responses = db.GetAllResponses().Result;
-            Int32 responsesCount = responses.Count;
-
-            Int32 responsesQuoteIndex = new Random().Next(responsesCount) + 1;
-
-            Quote responsesQuote = responses[responsesQuoteIndex];
-            LambdaLogger.Log($"Quote {responsesQuoteIndex}: {responsesQuote.quoteText}\n");
-            LambdaLogger.Log($"UUID: {responsesQuote.uuid}\n");
-            LambdaLogger.Log($"Medium: {responsesQuote.medium}\n");
-            LambdaLogger.Log($"Quality: {responsesQuote.quality}\n");
-            LambdaLogger.Log($"Polite: {responsesQuote.polite}\n");
-
-
+            String tweet = DecideTweetText(statement);
             var tweeter = new Tweeter(ApiKey, ApiSecretKey, AccessToken, AccessTokenSecret);
-            String tweet = String.Empty;
+            UInt64 id = tweeter.MaybeTweet(tweet, ActuallyTweet);
 
-            tweet = DecideTweetText(responsesQuote);
-            UInt64 id = tweeter.MaybeTweet(tweet, false);
+            //// Reply to mentions
+            //// To Do: Limit search by time
+            //// To Do: Only respond to original mentions - not to subsequent tweets in the chain
+            //// To Do: Change the value of the SearchText
+            //List<Quote> responsesList = db.GetAllResponses().Result;
+            //count = responsesList.Count;
 
-            // Reply to a tweet...
+            //List<Status> tweets = tweeter.GetTweets(SearchText, 20);
+            //foreach (Status tweeted in tweets)
+            //{
+            //    LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
+            //    LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
+            //    LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
+            //    LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
 
-            List<Status> tweets = tweeter.GetTweets("@SAghdashloo", 20);
-            foreach (Status tweeted in tweets)
-            {
-                LambdaLogger.Log($"TweetID: {tweeted.StatusID}\n");
-                LambdaLogger.Log($"    CreatedAt: {tweeted.CreatedAt}\n");
-                LambdaLogger.Log($"    User: {tweeted.User.ScreenNameResponse}\n");
-                LambdaLogger.Log($"    Text: {tweeted.FullText}\n");
+            //    Int32 responsesIndex = new Random().Next(count) + 1;
+            //    Quote response = responsesList[responsesIndex];
+            //    LambdaLogger.Log($"Response {responsesIndex}: {response.quoteText}\n");
 
-                ulong tweetId = tweeted.StatusID;
+            //    tweet = DecideTweetText(response);
+            //    id = tweeter.MaybeReply(tweet, tweeted.StatusID, ActuallyTweet);
+            //}
 
-                // 4)     Get random reply
-                // 5)     ReplyAsync(ulong tweetID, string status)
-            }
-
-            return responsesQuote.quoteText;
+            return tweet;
         }
 
         public String DecideTweetText(Quote quote)

@@ -1,4 +1,4 @@
-uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statement,response,quote
+uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statement,reply,quote
 1,Book,Caliban's War,Chapter Five: Avasarala,48,,,,4,0,1,1,Fuck him.
 2,Book,Caliban's War,Chapter Five: Avasarala,48,,,,1,1,1,0,"The Afghanis have been resisting external rule since before my ancestors were kicking out the British. As soon as I figure out how to change that, I’ll let him know."
 3,Book,Caliban's War,Chapter Five: Avasarala,48,,,,1,0,0,1,"I don’t have time to get another PhD to read it, so if it’s not in clear, concise language, fire the sonofabitch and get someone who knows how to write."
@@ -251,8 +251,7 @@ uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statemen
 250,TV,,,,Season 1,Remember the Cant,8:15,3,1,0,1,"I need a drink, is what I need."
 251,TV,,,,Season 1,Remember the Cant,8:32,3,1,1,1,"So, for the moment, you're completely useless and therefore have no exuse not to come to my house this afternoon."
 252,TV,,,,Season 1,Remember the Cant,8:41,4,1,0,1,You're never fun.
-253,TV,,,,Season 1,Remember the Cant,8:45,4,1,1,0,Arjun is making flan.
-254,TV,,,,Season 1,Remember the Cant,8:48,4,1,0,1,Mmm-hmm.
+253,TV,,,,Season 1,Remember the Cant,8:45,4,1,1,1,Arjun is making flan.
 255,TV,,,,Season 1,Remember the Cant,8:51,3,1,0,1,"If it makes you feel better, you are the best at rolling over."
 256,TV,,,,Season 1,Remember the Cant,17:33,3,1,1,0,Our operatives caught an OPA agent with Martian stealth composites
 257,TV,,,,Season 1,Remember the Cant,17:40,2,1,1,0,Mars is working with the OPA.
@@ -269,8 +268,6 @@ uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statemen
 268,TV,,,,Season 1,Remember the Cant,36:55,2,1,0,1,They couldn't do any of that without the knowledge of centuries from Earth.
 269,TV,,,,Season 1,Remember the Cant,36:58,1,1,1,1,Earth must come first.
 270,TV,,,,Season 1,Remember the Cant,37:36,2,1,1,0,"We may have stopped a war. For a while, anyway."
-271,TV,,,,Season 1,CQB,4:47,3,1,1,0,They took our people hostage. We have to get a ship there.
-272,TV,,,,Season 1,CQB,6:24,4,1,0,1,And you should?
 273,TV,,,,Season 1,CQB,6:59,1,1,1,1,I worry about people who throw rocks.
 274,TV,,,,Season 1,Rock Bottom,0:13,3,1,1,0,I need to borrow your spy on Tycho Station.
 275,TV,,,,Season 1,Rock Bottom,0:55,2,1,1,1,"How's you son, Esteban? He's up for parole soon."
@@ -278,7 +275,6 @@ uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statemen
 277,TV,,,,Season 1,Rock Bottom,22:47,1,1,0,1,He has blood on his hands and wants redemption.
 278,TV,,,,Season 1,Rock Bottom,22:49,1,1,1,0,"While Earth and Mars throw sand in each other's faces, the OPA rises in the Belt."
 279,TV,,,,Season 1,Windmills,5:33,2,1,1,1,"No, I wasn't murdered in the last thirty seconds."
-280,TV,,,,Season 1,Windmills,5:40,3,1,0,1,Think they'll file an injunction on me.
 281,TV,,,,Season 1,Windmills,5:44,1,1,1,0,"If I see one person on the ground or one helicopter overhead, you'll be living on Basic Assistance by the end of the month."
 282,TV,,,,Season 1,Windmills,14:04,3,0,0,1,I can make shit up too.
 283,TV,,,,Season 1,Windmills,29:41,2,1,1,1,You were right to open the cage.
@@ -289,3 +285,33 @@ uuid,medium,book,chapter,page,season,episode,runningTime,quality,polite,statemen
 288,TV,,,,Season 1,Leviathan Wakes,12:02,1,1,1,0,Then we expose the truth and nail Fred Johnson to it.
 289,TV,,,,Season 1,Leviathan Wakes,28:07,2,1,1,0,Frank knew those drives were stolen. He didn't commit suicide.
 290,TV,,,,Season 1,Leviathan Wakes,26:25,1,1,1,0,"So long as I play a familiar role, the stubborn old woman, eyes locked on yesterday's game, too blind to see the world has passed her by."
+291,TV,,,,Season 2,Safe,10:31,2,1,1,0,"With his own fleet, he believes he can go from being a terrorist to a statesman."
+292,TV,,,,Season 2,Safe,10:40,1,1,1,1,Never listen to what people say. Just watch what they do.
+293,TV,,,,Season 2,Safe,23:41,1,1,0,1,"Perfect excuse not to quit drinking, huh?"
+294,TV,,,,Season 2,Safe,30:05,2,1,1,0,I don't believe lightning strikes twice.
+295,TV,,,,Season 2,Safe,30:21,2,1,0,1,You're a first rate spy with a Robin Hood complex.
+296,TV,,,,Season 2,Safe,36:38,1,1,1,0,It takes two to play war.
+297,TV,,,,Season 2,Safe,37:16,2,1,1,0,The missiles are a message to back off. Nothing more.
+298,TV,,,,Season 2,Doors and Corners,17:29,1,1,1,0,"Get him a proper Scotch, please. Lagavulin."
+299,TV,,,,Season 2,Doors and Corners,17:34,2,0,1,1,Now why don't you grow a pair and tell me what you really think.
+300,TV,,,,Season 2,Doors and Corners,17:44,1,0,1,0,"I'm a smug old bitch, who enjoys playing with life and death on her big chess board."
+301,TV,,,,Season 2,Static,1:50,1,1,1,0,Can you imagine what it would be like to lose the moon?
+302,TV,,,,Season 2,Static,2:28,1,1,1,0,They fly at the speed of war.
+303,TV,,,,Season 2,Static,24:43,1,1,1,0,"If I do nothing, millions could die."
+304,TV,,,,Season 2,Static,25:42,1,1,1,1,"If you have any cards left in your hand, the time to play them is now."
+305,TV,,,,Season 2,Godspeed,8:25,1,1,1,0,"So these ""rogue"" employees managed to make a profit and a war without even going over budget?"
+306,TV,,,,Season 2,Home,1:03,1,1,1,0,How does a big rock like Eros suddenly turn into a ship?
+307,TV,,,,Season 2,Home,2:43,1,1,1,0,A hammer thinks everything is a nail
+308,TV,,,,Season 2,Home,24:14,1,1,1,0,"They're going to stay with Eros, even if it kills them."
+309,TV,,,,Season 2,Home,26:02,1,1,1,0,"Our home is threatened, and if I left you wouldn't respect me anyway."
+310,TV,,,,Season 2,Paradigm Shift,11:40,2,1,1,0,This is not a time to keep these things to yourself.
+311,TV,,,,Season 2,Paradigm Shift,31:33,1,1,1,0,"When the stakes are this high, many things are possible."
+312,TV,,,,Season 2,Paradigm Shift,31:58,1,0,1,0,Please let them know that if they can't I will rain hellfire down on them all.
+313,TV,,,,Season 2,Paradigm Shift,32:11,1,0,1,0,I have the power to do it because I'm the fucking hero who helped save Mother Earth.
+314,TV,,,,Season 2,Paradigm Shift,,1,0,1,0,"Their family will be ruined. The mother, the children, their children, all of them, pariahs. Outlaws. Hunted and on the run for the rest of their days, until we find them and nail each and every last one to the wall."
+315,TV,,,,Season 2,The Seventh Man,4:29,1,1,1,0,"It's time to step back before we're all wandering through the rubble, defending ourselves with rocks and sticks."
+316,TV,,,,Season 2,The Seventh Man,4:51,1,0,0,1,I like getting shit done.
+317,TV,,,,Season 2,The Seventh Man,4:53,1,1,0,1,I like to keep my head attached to my neck.
+318,TV,,,,Season 2,The Weeping Somnambulist,29:45,1,0,0,1,Wherever I goddamn like.
+319,TV,,,,Season 2,The Weeping Somnambulist,31:!2,1,0,1,0,"Whoever the fuck you are, stand down and let her speak. Unless there's something you don't want her to say."
+320,TV,,,,Season 2,Cascade,4:18,1,1,1,0,"After Eros, my definition of crazy has contracted significantly."
