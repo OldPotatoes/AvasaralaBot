@@ -5,6 +5,7 @@ appsettings.*.json
 src/BotConsole/appsettings.json
 src/BotService/appsettings.Development.json.xxx
 src/AvasaralaBot-AWSLambda/aws-lambda-tools-defaults.json
+upload/How-to-create-CloudWatch-resources.txt
 ###############
 
 ## Ignore Visual Studio temporary files, build results, and
