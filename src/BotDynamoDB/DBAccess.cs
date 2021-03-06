@@ -89,9 +89,10 @@ namespace BotDynamoDB
                 TableName = "WisdomOfAvasarala",
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
-                    {":s", new AttributeValue { S = "1" }}
+                    {":rep", new AttributeValue { S = "1" }},
+                    {":pol", new AttributeValue { S = "1" }}
                 },
-                FilterExpression = "reply = :s"
+                FilterExpression = "reply = :rep AND polite = :pol"
             };
 
             var resp = await _client.ScanAsync(request);
@@ -131,6 +132,71 @@ namespace BotDynamoDB
             LambdaLogger.Log($"Responses Count: {responses.Count}\n");
 
             return responses;
+        }
+
+        public async Task<DateTime> GetLastReplyTime()
+        {
+            DateTime lastReplyTime = new DateTime();
+
+            var request = new QueryRequest
+            {
+                TableName = "RepliesOfAvasarala",
+                IndexName = "dummy-replyTime-index",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":vDummy", new AttributeValue { N = "1" }}
+                },
+                KeyConditionExpression = "dummy = :vDummy",
+                ScanIndexForward = false,
+                Limit = 1
+            };
+
+            var response = await _client.QueryAsync(request);
+            LambdaLogger.Log($"Items Count: {response.Items.Count}\n");
+
+            Boolean found = false;
+            Int64 replyTimeNumber = 0;
+            foreach (Dictionary<string, AttributeValue> item in response.Items)
+            {
+                found = Int64.TryParse(item["replyTime"].N, out replyTimeNumber);
+            }
+
+            if (found)
+            {
+                //20210131235959
+                Int32 second = (Int32)(replyTimeNumber % 100);
+                replyTimeNumber /= 100;
+                Int32 minute = (Int32)(replyTimeNumber % 100);
+                replyTimeNumber /= 100;
+                Int32 hour = (Int32)(replyTimeNumber % 100);
+                replyTimeNumber /= 100;
+                Int32 day = (Int32)(replyTimeNumber % 100);
+                replyTimeNumber /= 100;
+                Int32 month = (Int32)(replyTimeNumber % 100);
+                replyTimeNumber /= 100;
+                Int32 year = (Int32)(replyTimeNumber);
+                lastReplyTime = new DateTime(year, month, day, hour, minute, second);
+                LambdaLogger.Log($"Year {year}, month {month}, day {day}, hour {hour}, minute {minute}, second {second}\n");
+            }
+
+            return lastReplyTime;
+        }
+
+        public async Task<Boolean> SetLastReplyTime(DateTime lastReplyTime, Int32 repliesMade)
+        {
+            LambdaLogger.Log($"lastReplyTime {lastReplyTime}\n");
+            Table repliesTable = Table.LoadTable(_client, "RepliesOfAvasarala");
+
+            var replyRecord = new Document();
+            replyRecord["uuid"] = Guid.NewGuid();
+            replyRecord["repliesMade"] = repliesMade;
+            replyRecord["replyTime"] = Int64.Parse(lastReplyTime.ToString("yyyyMMddHHmmss"));
+            replyRecord["dummy"] = 1;
+
+            await repliesTable.PutItemAsync(replyRecord);
+            LambdaLogger.Log($"Last reply time {lastReplyTime}, replies made {repliesMade} written to DB\n");
+
+            return true;
         }
 
         public async Task<Int32> CountStatements()
@@ -175,49 +241,6 @@ namespace BotDynamoDB
                 PaginationToken = results.PaginationToken,
                 Quotes = quotes
             };
-        }
-
-
-        public void BatchWrite()
-        {
-            var request = DBAddItems.MakeRequest(TableName);
-            LambdaLogger.Log($"Request: {request}\n");
-
-            CallBatchWriteTillCompletion(request);
-        }
-
-        private void CallBatchWriteTillCompletion(BatchWriteItemRequest request)
-        {
-            BatchWriteItemResponse response;
-
-            int callCount = 0;
-            do
-            {
-                LambdaLogger.Log("Making request\n");
-                response = _client.BatchWriteItemAsync(request).Result;
-                callCount++;
-
-                // Check the response.
-                var tableConsumedCapacities = response.ConsumedCapacity;
-                var unprocessed = response.UnprocessedItems;
-
-                LambdaLogger.Log("Per-table consumed capacity\n");
-                foreach (var tableConsumedCapacity in tableConsumedCapacities)
-                {
-                    LambdaLogger.Log($"{tableConsumedCapacity.TableName} - {tableConsumedCapacity.CapacityUnits}\n");
-                }
-
-                LambdaLogger.Log("Unprocessed\n");
-                foreach (var unp in unprocessed)
-                {
-                    LambdaLogger.Log($"{unp.Key} - {unp.Value.Count}\n");
-                }
-
-                // For the next iteration, the request will have unprocessed items.
-                request.RequestItems = unprocessed;
-            } while (response.UnprocessedItems.Count > 0);
-
-            LambdaLogger.Log($"Total # of batch write API calls made: {callCount}\n");
         }
     }
 }
