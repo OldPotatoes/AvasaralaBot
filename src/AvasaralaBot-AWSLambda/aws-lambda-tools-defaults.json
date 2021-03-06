@@ -19,6 +19,6 @@
     "package-type"         : "Zip",
     "function-role"        : "arn:aws:iam::145201272265:role/service-role/avasarala-bot-role-838aahdi",
     "tracing-mode"         : "PassThrough",
-    "environment-variables" : "\"ApiSecretKey\"=\"nRTHbp5pqXkHl6RmGgMIpiwSQZwdw8QFAKp7ayqxUWzia67X2t\";\"ApiKey\"=\"tFzyjhPRzrSekuogNj0TaMtfe\";\"AccessToken\"=\"1284552017403420675-viQ3FjXQoh8bq1bVsQPyniVgXS9iRd\";\"AccessTokenSecret\"=\"0JGQWtXTKYl5xfb9ISWwwO96LrPjFBcc1Syd7lOlMnTao\"",
+    "environment-variables" : "",
     "image-tag"             : ""
 }

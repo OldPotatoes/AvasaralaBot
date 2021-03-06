@@ -26,60 +26,30 @@ namespace BotTweeter
             _context = new TwitterContext(auth);
         }
 
-        public List<Status> GetTweets(String searchText, DateTime lastReplyTime, Int32 numberOfTweets=100)
+        public List<Status> GetTweets(String searchText, Int32 numberOfTweets=100)
         {
-            LambdaLogger.Log($"Get {numberOfTweets} tweets with search text {searchText}, from date {lastReplyTime}.\n");
-
-            var statuses = new List<Status>();
             var searchResponse =
                 (from search in _context.Search
                  where search.Type == SearchType.Search &&
                        search.Query == searchText &&
                        search.SearchLanguage == "en" &&
                        search.TweetMode == TweetMode.Extended &&
-                       search.Until == lastReplyTime &&
-                       // ExcludeReplies
+                    //    search.Until == new DateTime(2018, 12, 31) &&
                        search.Count == numberOfTweets
                  select search).SingleOrDefault();
 
-            if (searchResponse != null)
-                statuses = searchResponse.Statuses;
-
-            LambdaLogger.Log($"Got {statuses.Count} tweets.\n");
-
-            return statuses;
+            return searchResponse.Statuses;
         }
 
-        public List<Status> GetMentions(String screenName, DateTime lastReplyTime, Int32 numberOfTweets = 100)
+        public void GetTweetsFrom(String tweeter, Int32 numberOfTweets=100)
         {
-            // This does not pick up retweets
-            LambdaLogger.Log($"Get {numberOfTweets} tweets with screen name {screenName}, from date {lastReplyTime}.\n");
-
-            var mentions =
-                (from tweet in _context.Status
-                 where tweet.Type == StatusType.Mentions &&
-                       tweet.ScreenName == screenName &&
-                       tweet.CreatedAt > lastReplyTime &&
-                       tweet.Count == numberOfTweets
-                 select tweet).ToListAsync().Result;
-
-
-            LambdaLogger.Log($"Got {mentions.Count} tweets.\n");
-
-            return mentions;
-        }
-
-        public List<Status> GetTweetsFrom(String tweeter, Int32 numberOfTweets=100)
-        {
-            var tweets =
+            var tweetList =
                 (from search in _context.Status
                  where search.Type == StatusType.User &&
                        search.ScreenName == tweeter &&
                        search.TweetMode == TweetMode.Extended &&
                        search.Count == numberOfTweets
                  select search).ToList();
-
-            return tweets;
         }
 
         public List<Status> GetTweetWithId(UInt64 tweetId)
@@ -111,6 +81,7 @@ namespace BotTweeter
             return id;
         }
 
+
         public UInt64 Tweet(String tweetText, List<UInt64> mediaIds)
         {
             UInt64 id = 0;
@@ -129,54 +100,6 @@ namespace BotTweeter
                 }
                 else
                 {
-                    id = status.StatusID;
-                }
-            }
-            catch (Exception ex)
-            {
-                LambdaLogger.Log($"Exception: {ex.Message}\n");
-            }
-
-            return id;
-        }
-
-        public UInt64 MaybeReply(String tweetText, ulong tweetId, Boolean actuallyTweet)
-        {
-            UInt64 id = 0;
-
-            if (actuallyTweet)
-            {
-                id = Reply(tweetText, tweetId, null);
-                LambdaLogger.Log($"Actually replied: {tweetText}\n");
-            }
-            else
-            {
-                LambdaLogger.Log($"Not actually replied: {tweetText}\n");
-            }
-
-            return id;
-        }
-
-
-        public UInt64 Reply(String tweetText, ulong tweetId, List<UInt64> mediaIds)
-        {
-            UInt64 id = 0;
-
-            try
-            {
-                Status status;
-                if (mediaIds == null || mediaIds.Count == 0)
-                    status = _context.ReplyAsync(tweetId, tweetText).Result;
-                else
-                    status = _context.ReplyAsync(tweetId, tweetText, mediaIds).Result;
-
-                if (status == null)
-                {
-                    LambdaLogger.Log("Reply failed to process, but API did not report an error\n");
-                }
-                else
-                {
-                    LambdaLogger.Log($"Replied to: {tweetId} with: {tweetText}\n");
                     id = status.StatusID;
                 }
             }

@@ -42,11 +42,13 @@ namespace BotDynamoDB
                 FilterExpression = "statement = :s AND quality <> :q"
             };
 
-            var resp = await _client.ScanAsync(request);
+            var response = await _client.ScanAsync(request);
 
-            foreach (Dictionary<string, AttributeValue> item in resp.Items)
+            foreach (Dictionary<string, AttributeValue> item in response.Items)
             {
                 var quote = new Quote();
+                Boolean found = false;
+
                 quote.medium = item["medium"].S;
                 if (quote.medium == "TV")
                 {
@@ -55,21 +57,24 @@ namespace BotDynamoDB
                     quote.episode = item["episode"].S;
                     quote.runningTime = item["runningTime"].S;
                 }
-                Boolean found;
                 if (quote.medium == "Book")
                 {
-                    found = Int32.TryParse(item["page"].S, out Int32 page);
+                    Int32 page = 0;
+                    found = Int32.TryParse(item["page"].S, out page);
+
                     quote.uuid = item["uuid"].S;
                     quote.book = item["book"].S;
                     quote.chapter = item["chapter"].S;
                     quote.page = (found ? page : 0);
                 }
 
-                found = Int32.TryParse(item["quality"].S, out Int32 quality);
+                Int32 quality = 0;
+                found = Int32.TryParse(item["quality"].S, out quality);
+
                 quote.quality = (found ? quality : 0);
                 quote.polite = item["polite"].S == "1";
                 quote.statement = item["statement"].S == "1";
-                quote.reply = item["reply"].S == "1";
+                quote.response = item["response"].S == "1";
                 quote.quoteText = item["quote"].S;
 
                 statements.Add(quote);
@@ -78,125 +83,6 @@ namespace BotDynamoDB
             LambdaLogger.Log($"Statements Count: {statements.Count}\n");
 
             return statements;
-        }
-
-        public async Task<List<Quote>> GetAllResponses()
-        {
-            var responses = new List<Quote>();
-
-            var request = new ScanRequest
-            {
-                TableName = "WisdomOfAvasarala",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                {
-                    {":rep", new AttributeValue { S = "1" }},
-                    {":pol", new AttributeValue { S = "1" }}
-                },
-                FilterExpression = "reply = :rep AND polite = :pol"
-            };
-
-            var resp = await _client.ScanAsync(request);
-
-            foreach (Dictionary<string, AttributeValue> item in resp.Items)
-            {
-                var quote = new Quote();
-
-                quote.medium = item["medium"].S;
-                if (quote.medium == "TV")
-                {
-                    quote.uuid = item["uuid"].S;
-                    quote.season = item["season"].S;
-                    quote.episode = item["episode"].S;
-                    quote.runningTime = item["runningTime"].S;
-                }
-                Boolean found;
-                if (quote.medium == "Book")
-                {
-                    found = Int32.TryParse(item["page"].S, out Int32 page);
-                    quote.uuid = item["uuid"].S;
-                    quote.book = item["book"].S;
-                    quote.chapter = item["chapter"].S;
-                    quote.page = (found ? page : 0);
-                }
-
-                found = Int32.TryParse(item["quality"].S, out Int32 quality);
-                quote.quality = (found ? quality : 0);
-                quote.polite = item["polite"].S == "1";
-                quote.statement = item["statement"].S == "1";
-                quote.reply = item["reply"].S == "1";
-                quote.quoteText = item["quote"].S;
-
-                responses.Add(quote);
-            }
-
-            LambdaLogger.Log($"Responses Count: {responses.Count}\n");
-
-            return responses;
-        }
-
-        public async Task<DateTime> GetLastReplyTime()
-        {
-            DateTime lastReplyTime = new DateTime();
-
-            var request = new QueryRequest
-            {
-                TableName = "RepliesOfAvasarala",
-                IndexName = "dummy-replyTime-index",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                {
-                    {":vDummy", new AttributeValue { N = "1" }}
-                },
-                KeyConditionExpression = "dummy = :vDummy",
-                ScanIndexForward = false,
-                Limit = 1
-            };
-
-            var response = await _client.QueryAsync(request);
-            LambdaLogger.Log($"Items Count: {response.Items.Count}\n");
-
-            Boolean found = false;
-            Int64 replyTimeNumber = 0;
-            foreach (Dictionary<string, AttributeValue> item in response.Items)
-            {
-                found = Int64.TryParse(item["replyTime"].N, out replyTimeNumber);
-            }
-
-            if (found)
-            {
-                //20210131235959
-                Int32 second = (Int32)(replyTimeNumber % 100);
-                replyTimeNumber /= 100;
-                Int32 minute = (Int32)(replyTimeNumber % 100);
-                replyTimeNumber /= 100;
-                Int32 hour = (Int32)(replyTimeNumber % 100);
-                replyTimeNumber /= 100;
-                Int32 day = (Int32)(replyTimeNumber % 100);
-                replyTimeNumber /= 100;
-                Int32 month = (Int32)(replyTimeNumber % 100);
-                replyTimeNumber /= 100;
-                Int32 year = (Int32)(replyTimeNumber);
-                lastReplyTime = new DateTime(year, month, day, hour, minute, second);
-                LambdaLogger.Log($"Year {year}, month {month}, day {day}, hour {hour}, minute {minute}, second {second}\n");
-            }
-
-            return lastReplyTime;
-        }
-
-        public async Task<Boolean> SetLastReplyTime(DateTime lastReplyTime, Int32 repliesMade)
-        {
-            LambdaLogger.Log($"lastReplyTime {lastReplyTime}\n");
-            Table repliesTable = Table.LoadTable(_client, "RepliesOfAvasarala");
-
-            var replyRecord = new Document();
-            replyRecord["uuid"] = Guid.NewGuid();
-            replyRecord["repliesMade"] = repliesMade;
-            replyRecord["replyTime"] = Int64.Parse(lastReplyTime.ToString("yyyyMMddHHmmss"));
-            replyRecord["dummy"] = 1;
-
-            await repliesTable.PutItemAsync(replyRecord);
-            LambdaLogger.Log($"Last reply time {lastReplyTime}, replies made {repliesMade} written to DB\n");
-
-            return true;
         }
 
         public async Task<Int32> CountStatements()
@@ -242,5 +128,173 @@ namespace BotDynamoDB
                 Quotes = quotes
             };
         }
+
+
+        public void BatchWrite()
+        {
+            var request = DBAddItems.MakeRequest(TableName);
+            LambdaLogger.Log($"Request: {request}\n");
+
+            CallBatchWriteTillCompletion(request);
+        }
+
+        private void CallBatchWriteTillCompletion(BatchWriteItemRequest request)
+        {
+            BatchWriteItemResponse response;
+
+            int callCount = 0;
+            do
+            {
+                LambdaLogger.Log("Making request\n");
+                response = _client.BatchWriteItemAsync(request).Result;
+                callCount++;
+
+                // Check the response.
+                var tableConsumedCapacities = response.ConsumedCapacity;
+                var unprocessed = response.UnprocessedItems;
+
+                LambdaLogger.Log("Per-table consumed capacity\n");
+                foreach (var tableConsumedCapacity in tableConsumedCapacities)
+                {
+                    LambdaLogger.Log($"{tableConsumedCapacity.TableName} - {tableConsumedCapacity.CapacityUnits}\n");
+                }
+
+                LambdaLogger.Log("Unprocessed\n");
+                foreach (var unp in unprocessed)
+                {
+                    LambdaLogger.Log($"{unp.Key} - {unp.Value.Count}\n");
+                }
+
+                // For the next iteration, the request will have unprocessed items.
+                request.RequestItems = unprocessed;
+            } while (response.UnprocessedItems.Count > 0);
+
+            LambdaLogger.Log($"Total # of batch write API calls made: {callCount}\n");
+        }
+
+
+
+        //public void UpdateItems()
+        //{
+
+        //}
+
+        //private void UpdateMultipleAttributes()
+        //{
+        //    var request = new UpdateItemRequest
+        //    {
+        //        Key = new Dictionary<string, AttributeValue>()
+        //    {
+        //        { "Id", new AttributeValue {
+        //              N = "1000"
+        //          } }
+        //    },
+        //        // Perform the following updates:
+        //        // 1) Add two new authors to the list
+        //        // 1) Set a new attribute
+        //        // 2) Remove the ISBN attribute
+        //        ExpressionAttributeNames = new Dictionary<string, string>()
+        //    {
+        //        {"#A","Authors"},
+        //        {"#NA","NewAttribute"},
+        //        {"#I","ISBN"}
+        //    },
+        //        ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+        //    {
+        //        {":auth",new AttributeValue {
+        //             SS = {"Author YY", "Author ZZ"}
+        //         }},
+        //        {":new",new AttributeValue {
+        //             S = "New Value"
+        //         }}
+        //    },
+
+        //        UpdateExpression = "ADD #A :auth SET #NA = :new REMOVE #I",
+
+        //        TableName = TableName,
+        //        ReturnValues = "ALL_NEW" // Give me all attributes of the updated item.
+        //    };
+
+        //    var response = _client.UpdateItemAsync(request).Result;
+
+        //    // Check the response.
+        //    var attributeList = response.Attributes; // attribute list in the response.
+        //                                             // print attributeList.
+        //    Console.WriteLine("\nPrinting item after multiple attribute update ............");
+        //    PrintItem(attributeList);
+        //}
+
+        //private static void PrintItem(Dictionary<string, AttributeValue> attributeList)
+        //{
+        //    foreach (KeyValuePair<string, AttributeValue> kvp in attributeList)
+        //    {
+        //        string attributeName = kvp.Key;
+        //        AttributeValue value = kvp.Value;
+
+        //        Console.WriteLine(
+        //            attributeName + " " +
+        //            (value.S == null ? "" : "S=[" + value.S + "]") +
+        //            (value.N == null ? "" : "N=[" + value.N + "]") +
+        //            (value.SS == null ? "" : "SS=[" + string.Join(",", value.SS.ToArray()) + "]") +
+        //            (value.NS == null ? "" : "NS=[" + string.Join(",", value.NS.ToArray()) + "]")
+        //            );
+        //    }
+        //    Console.WriteLine("************************************************");
+        //}
+
+        //public List<String> GetTables()
+        //{
+        //    var client = new AmazonDynamoDBClient();
+
+        //    LambdaLogger.Log("Getting list of tables\n");
+        //    List<String> currentTables = client.ListTablesAsync().Result.TableNames;
+        //    LambdaLogger.Log($"Number of tables: {currentTables.Count}\n");
+
+        //    return currentTables;
+        //}
+
+        //public void CreateTable()
+        //{
+        //    var request = new CreateTableRequest
+        //    {
+        //        TableName = "AnimalsInventory",
+        //        AttributeDefinitions = new List<AttributeDefinition>
+        //        {
+        //            new AttributeDefinition
+        //            {
+        //                AttributeName = "Id",
+        //                AttributeType = "N"
+        //            },
+        //            new AttributeDefinition
+        //            {
+        //                AttributeName = "Type",
+        //                AttributeType = "S"
+        //            }
+        //        },
+        //        KeySchema = new List<KeySchemaElement>
+        //        {
+        //            new KeySchemaElement
+        //            {
+        //                AttributeName = "Id",
+        //                KeyType = "HASH"
+        //            },
+        //            new KeySchemaElement
+        //            {
+        //                AttributeName = "Type",
+        //                KeyType = "RANGE"
+        //            },
+        //        },
+        //        ProvisionedThroughput = new ProvisionedThroughput
+        //        {
+        //            ReadCapacityUnits = 10,
+        //            WriteCapacityUnits = 5
+        //        },
+        //    };
+
+        //    var client = new AmazonDynamoDBClient();
+        //    var response = client.CreateTableAsync(request).Result;
+
+        //    LambdaLogger.Log($"Table created with request ID: {response.ResponseMetadata.RequestId}\n");
+        //}
     }
 }
