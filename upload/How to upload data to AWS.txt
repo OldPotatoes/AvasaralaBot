@@ -29,8 +29,8 @@ Go to the AWS CloudFormation console
 On the 'Specify stack details' page
 	For Stack name, enter 'avasarala-upload'
 	For BucketName, enter 'avasarala-upload'
-	For DynamoDBTableName, enter WisdomOfAvasarala
-	For FileName, enter quotes.csv
+	For DynamoDBTableName, enter 'WisdomOfAvasarala'
+	For FileName, enter 'quotes.csv'
 	Hit 'Next' button
 
 On the 'Configure stack options' page

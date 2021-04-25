@@ -1,4 +1,4 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DataModel;
 using System;
 
 namespace BotDynamoDB
@@ -19,6 +19,7 @@ namespace BotDynamoDB
         public bool polite { get; set; }
         public bool statement { get; set; }
         public bool reply { get; set; }
+        public bool tweeted { get; set; }
 
         [DynamoDBProperty("quote")]
         public string quoteText { get; set; }
