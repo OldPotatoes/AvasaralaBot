@@ -36,10 +36,10 @@ namespace BotDynamoDB
                 TableName = "WisdomOfAvasarala",
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
-                    {":s", new AttributeValue { S = "1" }},
-                    {":q", new AttributeValue { S = "4" }}
+                    { ":s", new AttributeValue { S = "1" } },
+                    { ":t", new AttributeValue { S = "0" } }
                 },
-                FilterExpression = "statement = :s AND quality <> :q"
+                FilterExpression = "statement = :s AND tweeted = :t"
             };
 
             var resp = await _client.ScanAsync(request);
@@ -70,6 +70,7 @@ namespace BotDynamoDB
                 quote.polite = item["polite"].S == "1";
                 quote.statement = item["statement"].S == "1";
                 quote.reply = item["reply"].S == "1";
+                quote.tweeted = item["tweeted"].S == "1";
                 quote.quoteText = item["quote"].S;
 
                 statements.Add(quote);
@@ -240,6 +241,72 @@ namespace BotDynamoDB
                 PaginationToken = results.PaginationToken,
                 Quotes = quotes
             };
+        }
+
+        public void SetTweeted(Quote statement)
+        {
+            LambdaLogger.Log($"Setting tweeted for statement for uuid {statement.uuid}\n");
+            AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+
+            var request = new UpdateItemRequest
+            {
+                TableName = "WisdomOfAvasarala",
+                Key = new Dictionary<string, AttributeValue>()
+                {
+                    { "uuid", new AttributeValue { S = statement.uuid } }
+                },
+                ExpressionAttributeNames = new Dictionary<string, string>()
+                {
+                    {"#T", "tweeted"}
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":t",new AttributeValue {S = "1"}}
+                },
+                UpdateExpression = "SET #T = :t"
+            };
+
+            var response = client.UpdateItemAsync(request).Result;
+        }
+
+        public void ResetTweetedValues()
+        {
+            AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+
+            Int32 item = 0;
+            while (true)
+            {
+                ++item;
+                var request = new UpdateItemRequest
+                {
+                    TableName = "WisdomOfAvasarala",
+                    Key = new Dictionary<string, AttributeValue>()
+                    {
+                        { "uuid", new AttributeValue { S = item.ToString() } }
+                    },
+                    ExpressionAttributeNames = new Dictionary<string, string>()
+                    {
+                        {"#T", "tweeted"}
+                    },
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                    {
+                        {":t",new AttributeValue {S = "0"}}
+                    },
+                    UpdateExpression = "SET #T = :t"
+                };
+
+                try
+                {
+                    var response = client.UpdateItemAsync(request).Result;
+                }
+                catch (Exception ex)
+                {
+                    LambdaLogger.Log($"ERROR - {ex}\n");
+                    LambdaLogger.Log($"ERROR - {ex.Message}\n");
+                    break;
+                }
+                LambdaLogger.Log($"Reset all statements\n");
+            }
         }
     }
 }

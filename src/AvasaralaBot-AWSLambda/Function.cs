@@ -44,12 +44,20 @@ namespace AvasaralaBot_AWSLambda
             List<Quote> statementsList = db.GetAllStatements().Result;
             Int32 count = statementsList.Count;
 
-            Int32 quoteIndex = new Random().Next(count) + 1;
+            // If this is the last statement, reset all the 'tweeted' values
+            if (count <= 1)
+            {
+                LambdaLogger.Log($"Published all statements, time to reset\n");
+                db.ResetTweetedValues();
+            }
+
+            Int32 quoteIndex = new Random().Next(count);
             Quote statement = statementsList[quoteIndex];
             LambdaLogger.Log($"Quote {quoteIndex}: {statement.quoteText}\n");
 
             String tweet = DecideTweetText(statement);
             UInt64 id = tweeter.MaybeTweet(tweet, ActuallyTweet);
+            db.SetTweeted(statement);
         }
 
         private void ReplyToMentions(DBAccess db, Tweeter tweeter)
