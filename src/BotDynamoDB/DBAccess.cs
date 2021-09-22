@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace BotDynamoDB
 
         public async Task<List<Quote>> GetAllStatements()
         {
+            LambdaLogger.Log($"GetAllStatements()\n");
             var statements = new List<Quote>();
 
             var request = new ScanRequest
@@ -76,13 +78,14 @@ namespace BotDynamoDB
                 statements.Add(quote);
             }
 
-            LambdaLogger.Log($"Statements Count: {statements.Count}\n");
+            LambdaLogger.Log($"    Statements Count: {statements.Count}\n");
 
             return statements;
         }
 
         public async Task<List<Quote>> GetAllResponses()
         {
+            LambdaLogger.Log($"GetAllResponses()\n");
             var responses = new List<Quote>();
 
             var request = new ScanRequest
@@ -129,13 +132,14 @@ namespace BotDynamoDB
                 responses.Add(quote);
             }
 
-            LambdaLogger.Log($"Responses Count: {responses.Count}\n");
+            LambdaLogger.Log($"    Responses Count: {responses.Count}\n");
 
             return responses;
         }
 
         public async Task<DateTime> GetLastReplyTime()
         {
+            LambdaLogger.Log($"GetLastReplyTime()\n");
             DateTime lastReplyTime = new DateTime();
 
             var request = new QueryRequest
@@ -152,7 +156,7 @@ namespace BotDynamoDB
             };
 
             var response = await _client.QueryAsync(request);
-            LambdaLogger.Log($"Items Count: {response.Items.Count}\n");
+            LambdaLogger.Log($"    Items Count: {response.Items.Count}\n");
 
             Boolean found = false;
             Int64 replyTimeNumber = 0;
@@ -176,7 +180,7 @@ namespace BotDynamoDB
                 replyTimeNumber /= 100;
                 Int32 year = (Int32)(replyTimeNumber);
                 lastReplyTime = new DateTime(year, month, day, hour, minute, second);
-                LambdaLogger.Log($"Year {year}, month {month}, day {day}, hour {hour}, minute {minute}, second {second}\n");
+                LambdaLogger.Log($"    Year {year}, month {month}, day {day}, hour {hour}, minute {minute}, second {second}\n");
             }
 
             return lastReplyTime;
@@ -184,7 +188,8 @@ namespace BotDynamoDB
 
         public async Task<Boolean> SetLastReplyTime(DateTime lastReplyTime, Int32 repliesMade)
         {
-            LambdaLogger.Log($"lastReplyTime {lastReplyTime}\n");
+            LambdaLogger.Log($"SetLastReplyTime()\n");
+            LambdaLogger.Log($"    {repliesMade} replies since {lastReplyTime}\n");
             Table repliesTable = Table.LoadTable(_client, "RepliesOfAvasarala");
 
             var replyRecord = new Document();
@@ -194,13 +199,14 @@ namespace BotDynamoDB
             replyRecord["dummy"] = 1;
 
             await repliesTable.PutItemAsync(replyRecord);
-            LambdaLogger.Log($"Last reply time {lastReplyTime}, replies made {repliesMade} written to DB\n");
+            LambdaLogger.Log($"    Last reply time {lastReplyTime}, replies made {repliesMade} written to DB\n");
 
             return true;
         }
 
         public async Task<Int32> CountStatements()
         {
+            LambdaLogger.Log($"CountStatements()\n");
             var request = new ScanRequest
             {
                 TableName = "WisdomOfAvasarala",
@@ -213,17 +219,19 @@ namespace BotDynamoDB
             };
 
             var response = await _client.ScanAsync(request);
-            LambdaLogger.Log($"Consumed Capacity: {response.ConsumedCapacity}\n");
-            LambdaLogger.Log($"Content Length: {response.ContentLength}\n");
-            LambdaLogger.Log($"Count: {response.Count}\n");
-            LambdaLogger.Log($"Scanned Count: {response.ScannedCount}\n");
-            LambdaLogger.Log($"Items Count: {response.Items.Count}\n");
+            LambdaLogger.Log($"    Consumed Capacity: {response.ConsumedCapacity}\n");
+            LambdaLogger.Log($"    Content Length: {response.ContentLength}\n");
+            LambdaLogger.Log($"    Count: {response.Count}\n");
+            LambdaLogger.Log($"    Scanned Count: {response.ScannedCount}\n");
+            LambdaLogger.Log($"    Items Count: {response.Items.Count}\n");
 
             return response.Items.Count;
         }
 
         public async Task<QuoteCollection> GetQuotes(string paginationToken = "")
         {
+            LambdaLogger.Log($"GetQuotes()\n");
+            LambdaLogger.Log($"    Pagination token: {paginationToken}\n");
             var table = _context.GetTargetTable<Quote>();
 
             var scanOps = new ScanOperationConfig();
@@ -243,9 +251,10 @@ namespace BotDynamoDB
             };
         }
 
-        public void SetTweeted(Quote statement)
+        public void SetTweeted(Quote statement, Boolean actuallySet)
         {
-            LambdaLogger.Log($"Setting tweeted for statement for uuid {statement.uuid}\n");
+            LambdaLogger.Log($"SetTweeted()\n");
+            LambdaLogger.Log($"    Setting tweeted ({actuallySet}) for statement {JsonConvert.SerializeObject(statement)}\n");
             AmazonDynamoDBClient client = new AmazonDynamoDBClient();
 
             var request = new UpdateItemRequest
@@ -266,23 +275,24 @@ namespace BotDynamoDB
                 UpdateExpression = "SET #T = :t"
             };
 
-            var response = client.UpdateItemAsync(request).Result;
+            if (actuallySet)
+            {
+                var response = client.UpdateItemAsync(request).Result;
+            }
         }
 
-        public void ResetTweetedValues()
+        public async Task ResetTweetedValues(List<Quote> statementsList, Boolean actuallySet)
         {
-            AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-
-            Int32 item = 0;
-            while (true)
+            LambdaLogger.Log($"ResetTweetedValues()\n");
+            LambdaLogger.Log($"    Resetting tweeted values ({actuallySet}) for {statementsList.Count} statements)\n");
+            foreach (Quote statement in statementsList)
             {
-                ++item;
                 var request = new UpdateItemRequest
                 {
                     TableName = "WisdomOfAvasarala",
                     Key = new Dictionary<string, AttributeValue>()
                     {
-                        { "uuid", new AttributeValue { S = item.ToString() } }
+                        { "uuid", new AttributeValue { S = statement.uuid.ToString() } }
                     },
                     ExpressionAttributeNames = new Dictionary<string, string>()
                     {
@@ -295,17 +305,21 @@ namespace BotDynamoDB
                     UpdateExpression = "SET #T = :t"
                 };
 
-                try
+                if (actuallySet)
                 {
-                    var response = client.UpdateItemAsync(request).Result;
+                    try
+                    {
+                        AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+                        await client.UpdateItemAsync(request);
+                    }
+                    catch (Exception ex)
+                    {
+                        LambdaLogger.Log($"ERROR - {ex}\n");
+                        LambdaLogger.Log($"ERROR - {ex.Message}\n");
+                        break;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    LambdaLogger.Log($"ERROR - {ex}\n");
-                    LambdaLogger.Log($"ERROR - {ex.Message}\n");
-                    break;
-                }
-                LambdaLogger.Log($"Reset all statements\n");
+                LambdaLogger.Log($"    Reset all statements\n");
             }
         }
     }

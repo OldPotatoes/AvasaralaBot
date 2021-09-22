@@ -6,9 +6,9 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "power-drone",
+    "profile"     : "VSDev",
     "region"      : "us-east-1",
-    "configuration" : "Debug",
+    "configuration" : "Release",
     "framework"     : "netcoreapp3.1",
     "function-runtime" : "dotnetcore3.1",
     "function-memory-size" : 256,
@@ -19,6 +19,6 @@
     "package-type"         : "Zip",
     "function-role"        : "arn:aws:iam::145201272265:role/service-role/avasarala-bot-role-838aahdi",
     "tracing-mode"         : "PassThrough",
-    "environment-variables" : "",
+    "environment-variables" : "\"ApiSecretKey\"=\"nRTHbp5pqXkHl6RmGgMIpiwSQZwdw8QFAKp7ayqxUWzia67X2t\";\"ApiKey\"=\"tFzyjhPRzrSekuogNj0TaMtfe\";\"AccessToken\"=\"1284552017403420675-viQ3FjXQoh8bq1bVsQPyniVgXS9iRd\";\"AccessTokenSecret\"=\"0JGQWtXTKYl5xfb9ISWwwO96LrPjFBcc1Syd7lOlMnTao\"",
     "image-tag"             : ""
 }
