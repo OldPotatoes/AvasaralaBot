@@ -28,7 +28,8 @@ namespace BotTweeter
 
         public List<Status> GetTweets(String searchText, DateTime lastReplyTime, Int32 numberOfTweets =100)
         {
-            LambdaLogger.Log($"Get {numberOfTweets} tweets with search text {searchText}, from date {lastReplyTime}.\n");
+            LambdaLogger.Log($"GetTweets()\n");
+            LambdaLogger.Log($"    Get {numberOfTweets} tweets with search text {searchText}, from date {lastReplyTime}.\n");
 
             var statuses = new List<Status>();
             var searchResponse =
@@ -43,7 +44,7 @@ namespace BotTweeter
             if (searchResponse != null)
                 statuses = searchResponse.Statuses;
 
-            LambdaLogger.Log($"Got {statuses.Count} tweets.\n");
+            LambdaLogger.Log($"    Got {statuses.Count} tweets.\n");
 
             return statuses;
         }
@@ -51,7 +52,8 @@ namespace BotTweeter
         public List<Status> GetMentions(String screenName, DateTime lastReplyTime, Int32 numberOfTweets = 100)
         {
             // This does not pick up retweets
-            LambdaLogger.Log($"Get {numberOfTweets} tweets with screen name {screenName}, from date {lastReplyTime}.\n");
+            LambdaLogger.Log($"GetMentions()\n");
+            LambdaLogger.Log($"    Get {numberOfTweets} tweets with screen name {screenName}, from date {lastReplyTime}.\n");
 
             var mentions =
                 (from tweet in _context.Status
@@ -62,13 +64,15 @@ namespace BotTweeter
                  select tweet).ToListAsync().Result;
 
 
-            LambdaLogger.Log($"Got {mentions.Count} tweets.\n");
+            LambdaLogger.Log($"    Got {mentions.Count} mentions.\n");
 
             return mentions;
         }
 
         public List<Status> GetTweetsFrom(String tweeter, Int32 numberOfTweets = 100)
         {
+            LambdaLogger.Log($"GetTweetsFrom()\n");
+            LambdaLogger.Log($"    Get {numberOfTweets} tweets from {tweeter}.\n");
             var tweets =
                 (from search in _context.Status
                  where search.Type == StatusType.User &&
@@ -80,30 +84,67 @@ namespace BotTweeter
             return tweets;
         }
 
-        public List<Status> GetTweetWithId(UInt64 tweetId)
+        public void PrintTweet(UInt64 tweetId)
         {
-            var tweetList =
+            var tweet = GetTweetWithId(tweetId);
+            PrintTweet(tweet);
+        }
+
+        public Status GetTweetWithId(UInt64 tweetId)
+        {
+            LambdaLogger.Log($"GetTweetWithId()\n");
+            LambdaLogger.Log($"    Get tweet with ID {tweetId}.\n");
+            var tweet =
                 (from search in _context.Status
                  where search.Type == StatusType.User &&
                        search.TweetMode == TweetMode.Extended &&
                        search.StatusID == tweetId
-                 select search).ToList();
+                 select search).FirstOrDefault();
 
-            return tweetList;
+            return tweet;
+        }
+
+        public void PrintTweet(Status tweet)
+        {
+            LambdaLogger.Log($"    TweetID: {tweet.StatusID}\n");
+
+            LambdaLogger.Log($"        Created at: {tweet.CreatedAt}\n");
+            LambdaLogger.Log($"        User: {tweet.User.ScreenNameResponse}\n");
+            LambdaLogger.Log($"        Text: {tweet.FullText}\n");
+            LambdaLogger.Log($"        In Reply to tweet: {tweet.InReplyToStatusID}\n");
+            LambdaLogger.Log($"        In Reply to user: {tweet.InReplyToUserID}\n");
+            LambdaLogger.Log($"        User Mentions count: {tweet.Entities.UserMentionEntities.Count}\n");
+
+            foreach (UserMentionEntity ume in tweet.Entities.UserMentionEntities)
+            {
+                LambdaLogger.Log($"        User Mention: {ume.Id}, {ume.Name}, {ume.ScreenName}\n");
+            }
+            LambdaLogger.Log($"        Contributors count: {tweet.Contributors.Count}\n");
+            foreach (Contributor contrib in tweet.Contributors)
+            {
+                LambdaLogger.Log($"        Contributor: {contrib.ID}, {contrib.ScreenName}\n");
+            }
+            LambdaLogger.Log($"        User count: {tweet.Users.Count}\n");
+            foreach (ulong user in tweet.Users)
+            {
+                LambdaLogger.Log($"        User: {user}\n");
+            }
         }
 
         public UInt64 MaybeTweet(String tweetText, Boolean actuallyTweet)
         {
+            LambdaLogger.Log($"MaybeTweet()\n");
+            LambdaLogger.Log($"    Maybe ({actuallyTweet}) tweet: {tweetText}.\n");
             UInt64 id = 0;
 
             if (actuallyTweet)
             {
                 id = Tweet(tweetText, null);
-                LambdaLogger.Log($"Actually tweeted: {tweetText}\n");
+                LambdaLogger.Log($"    Actually tweeted: {tweetText}\n");
             }
             else
             {
-                LambdaLogger.Log($"Not actually tweeted: {tweetText}\n");
+                LambdaLogger.Log($"    Not actually tweeted: {tweetText}\n");
             }
 
             return id;
@@ -111,6 +152,8 @@ namespace BotTweeter
 
         public UInt64 Tweet(String tweetText, List<UInt64> mediaIds)
         {
+            LambdaLogger.Log($"Tweet()\n");
+            LambdaLogger.Log($"    Tweet {tweetText} with: {mediaIds?.Count} media IDs.\n");
             UInt64 id = 0;
 
             try
@@ -123,7 +166,7 @@ namespace BotTweeter
 
                 if (status == null)
                 {
-                    LambdaLogger.Log("Tweet failed to process, but API did not report an error\n");
+                    LambdaLogger.Log("    Tweet failed to process, but API did not report an error\n");
                 }
                 else
                 {
@@ -140,16 +183,18 @@ namespace BotTweeter
 
         public UInt64 MaybeReply(String tweetText, ulong tweetId, Boolean actuallyTweet)
         {
+            LambdaLogger.Log($"MaybeReply()\n");
+            LambdaLogger.Log($"    Maybe reply ({actuallyTweet}) to tweet ID {tweetId}, tweet: {tweetText}.\n");
             UInt64 id = 0;
 
             if (actuallyTweet)
             {
                 id = Reply(tweetText, tweetId, null);
-                LambdaLogger.Log($"Actually replied: {tweetText}\n");
+                LambdaLogger.Log($"    Actually replied: {tweetText}\n");
             }
             else
             {
-                LambdaLogger.Log($"Not actually replied: {tweetText}\n");
+                LambdaLogger.Log($"    Not actually replied: {tweetText}\n");
             }
 
             return id;
@@ -158,6 +203,8 @@ namespace BotTweeter
 
         public UInt64 Reply(String tweetText, ulong tweetId, List<UInt64> mediaIds)
         {
+            LambdaLogger.Log($"Reply()\n");
+            LambdaLogger.Log($"    Reply to tweet ID {tweetId}, tweet: {tweetText} with: {mediaIds?.Count} media IDs.\n");
             UInt64 id = 0;
 
             try
@@ -170,7 +217,7 @@ namespace BotTweeter
 
                 if (status == null)
                 {
-                    LambdaLogger.Log("Reply failed to process, but API did not report an error\n");
+                    LambdaLogger.Log("    Reply failed to process, but API did not report an error\n");
                 }
                 else
                 {
