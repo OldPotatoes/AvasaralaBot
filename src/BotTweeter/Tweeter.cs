@@ -86,7 +86,14 @@ namespace BotTweeter
 
         public void PrintTweet(UInt64 tweetId)
         {
+            LambdaLogger.Log($"PrintTweet()\n");
             var tweet = GetTweetWithId(tweetId);
+            if (tweet == null)
+            {
+                LambdaLogger.Log($"No tweet with ID: {tweetId}\n");
+                return;
+            }
+
             PrintTweet(tweet);
         }
 
@@ -108,9 +115,10 @@ namespace BotTweeter
         {
             LambdaLogger.Log($"    TweetID: {tweet.StatusID}\n");
 
-            LambdaLogger.Log($"        Created at: {tweet.CreatedAt}\n");
-            LambdaLogger.Log($"        User: {tweet.User.ScreenNameResponse}\n");
-            LambdaLogger.Log($"        Text: {tweet.FullText}\n");
+            LambdaLogger.Log($"        Created at: {tweet.CreatedAt} UTC\n");
+            LambdaLogger.Log($"        User screen name: {tweet.User.ScreenNameResponse}\n");
+            LambdaLogger.Log($"        User name: {tweet.User.Name}\n");
+            LambdaLogger.Log($"        Text: {tweet.Text}\n");
             LambdaLogger.Log($"        In Reply to tweet: {tweet.InReplyToStatusID}\n");
             LambdaLogger.Log($"        In Reply to user: {tweet.InReplyToUserID}\n");
             LambdaLogger.Log($"        User Mentions count: {tweet.Entities.UserMentionEntities.Count}\n");

@@ -92,8 +92,7 @@ namespace AvasaralaBot_AWSLambda
             {
                 tweeter.PrintTweet(tweeted);
 
-                // Screen out retweets (GetMentions does this automatically)
-
+                // Screen out retweets
                 if (tweeted.InReplyToStatusID != 0)
                 {
                     // This should screen out replies to replies - only reply to initiating tweets
@@ -105,6 +104,13 @@ namespace AvasaralaBot_AWSLambda
                         replyCount--;
                         continue;
                     }
+                }
+
+                // Screen out replying to herself!
+                if (tweeted.User.ScreenNameResponse == AvasaralaBotUser)
+                {
+                    LambdaLogger.Log($"    Filtering out own tweet: {tweeted.StatusID}\n");
+                    continue;
                 }
 
                 if (tweeted.InReplyToUserID != AvasaralaBotUserId)
@@ -127,13 +133,19 @@ namespace AvasaralaBot_AWSLambda
             if (replyCount > 0)
             {
                 var timeUtc = DateTime.UtcNow;
-                TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
-                DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
-                LambdaLogger.Log($"    New York: {easternTime}\n");
+                LambdaLogger.Log($"    UTC now: {timeUtc}\n");
+                //TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+                //DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+                //LambdaLogger.Log($"    New York: {easternTime}\n");
 
                 if (ActuallyTweet)
                 {
-                    Boolean isWritten = db.SetLastReplyTime(easternTime, replyCount).Result;
+                    //Boolean isWritten = db.SetLastReplyTime(easternTime, replyCount).Result;
+                    Boolean isWritten = db.SetLastReplyTime(timeUtc, replyCount).Result;
+                    if (!isWritten)
+                    {
+                        LambdaLogger.Log($"ERROR: Failed to set last reply time to {timeUtc}\n");
+                    }
                 }
             }
         }
