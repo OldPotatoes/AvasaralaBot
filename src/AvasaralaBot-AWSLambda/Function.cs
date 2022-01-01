@@ -1,11 +1,11 @@
 using Amazon.Lambda.Core;
 using BotDynamoDB;
 using BotTweeter;
+using LinqToTwitter;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using LinqToTwitter;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Linq;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -52,8 +52,6 @@ namespace AvasaralaBot_AWSLambda
         private void TweetWisdom(DBAccess db, Tweeter tweeter)
         {
             LambdaLogger.Log($"TweetWisdom()\n");
-            LambdaLogger.Log($"    DBAccess: {JsonConvert.SerializeObject(db)}\n");
-            LambdaLogger.Log($"    Tweeter: {JsonConvert.SerializeObject(tweeter)}\n");
             List<Quote> statementsList = db.GetAllStatements().Result;
             Int32 count = statementsList.Count;
 
@@ -73,74 +71,92 @@ namespace AvasaralaBot_AWSLambda
             db.SetTweeted(statement, ActuallyTweet);
         }
 
-        private void ReplyToMentions(DBAccess db, Tweeter tweeter)
+        private async void ReplyToMentions(DBAccess db, Tweeter tweeter)
         {
             LambdaLogger.Log($"ReplyToMentions()\n");
-            LambdaLogger.Log($"    DBAccess: {JsonConvert.SerializeObject(db)}\n");
-            LambdaLogger.Log($"    Tweeter: {JsonConvert.SerializeObject(tweeter)}\n");
             List<Quote> responsesList = db.GetAllResponses().Result;
             Int32 count = responsesList.Count;
 
             DateTime lastReplyTime = db.GetLastReplyTime().Result;
+
             LambdaLogger.Log($"    Last reply time: {lastReplyTime}\n");
 
-            //List<Status> tweets = tweeter.GetTweets(SearchText, lastReplyTime, MaxTweetsToReturn);
-            List<Status> tweets = tweeter.GetMentions(SearchText, lastReplyTime, MaxTweetsToReturn);
-            //List<Status> tweets = tweeter.GetTweetsFrom(SearchText, MaxTweetsToReturn);
-            Int32 replyCount = tweets.Count;
+            var TweetInfo = new List<TweetDerivationPair>();
+
+            List<Status> tweets = tweeter.GetMentions(SearchText, lastReplyTime, MaxTweetsToReturn).Result;
+            //TweetQuery tweetQuery = await tweeter.GetMentions_New(AvasaralaBotUserId, lastReplyTime, MaxTweetsToReturn);
+            //Int32 replyCount = tweetQuery.Tweets.Count;
+            //foreach (Tweet tweeted in tweetQuery.Tweets)
             foreach (Status tweeted in tweets)
             {
                 tweeter.PrintTweet(tweeted);
 
-                // Screen out retweets
-                if (tweeted.InReplyToStatusID != 0)
+                TweetDerivationPair tdp = new TweetDerivationPair();
+                tdp.Tweet = tweeted;
+
+                if (tweeted.UserID == AvasaralaBotUserId)
                 {
-                    // This should screen out replies to replies - only reply to initiating tweets
-                    var previous = tweeter.GetTweetWithId(tweeted.InReplyToStatusID);
-                    if (previous.User.ScreenNameResponse != AvasaralaBotUser)
+                    // Tweet is by AvasaralaBot
+                    tdp.Derivation = TweetDerivation.TweetFromAB;
+                }
+                //else if (tweeted.InReplyToUserID == "0")
+                else if (tweeted.InReplyToUserID == 0)
+                {
+                    // Tweet is the start of a conversation
+
+                    //if (tweeted.Entities.Mentions.Any(m => m.Username == AvasaralaBotUser)) // or SearchText
+                    if (tweeted.Entities.UserMentionEntities.Any(m => m.ScreenName == AvasaralaBotUser))
                     {
-                        LambdaLogger.Log($"    Filtering out non-initiating tweet to reply to: {tweeted.InReplyToStatusID}\n");
-                        tweeter.PrintTweet(tweeted.InReplyToStatusID);
-                        replyCount--;
-                        continue;
+                        // Tweet mentions AvasaralaBot
+                        // Should always be true as these are mentions
+                        tdp.Derivation = TweetDerivation.TweetAtAB;
+
+                        // Could also be a retweet?
                     }
                 }
-
-                // Screen out replying to herself!
-                if (tweeted.User.ScreenNameResponse == AvasaralaBotUser)
+                else if (tweeted.InReplyToUserID == AvasaralaBotUserId)
                 {
-                    LambdaLogger.Log($"    Filtering out own tweet: {tweeted.StatusID}\n");
-                    continue;
+                    // Tweet is replying to AvararalaBot
+                    tdp.Derivation = TweetDerivation.ReplyToAB;
+                }
+                else
+                {
+                    // Tweet is replying to someone else
+                    tdp.Derivation = TweetDerivation.ReplyToOther;
                 }
 
-                if (tweeted.InReplyToUserID != AvasaralaBotUserId)
+                TweetInfo.Add(tdp);
+            }
+
+            Int32 replyCount = 0;
+            foreach (TweetDerivationPair tdp in TweetInfo)
+            {
+                LambdaLogger.Log($"{tdp.Tweet.User.ScreenNameResponse} says: {tdp.Tweet.Text} - Derivation: {tdp.Derivation.ToString()}\n");
+
+                if (tdp.Derivation == TweetDerivation.ReplyToAB ||
+                    tdp.Derivation == TweetDerivation.TweetAtAB ||
+                    tdp.Derivation == TweetDerivation.RetweetOfAB)
                 {
-                    // This should filter out non-@s, or we will spam every person who replies to our reply
-                    LambdaLogger.Log($"    Filtering out tweetID as a reply: {tweeted.StatusID}\n");
-                    continue;
+                    Int32 responsesIndex = new Random().Next(count) + 1;
+                    Quote response = responsesList[responsesIndex];
+                    LambdaLogger.Log($"    Response {responsesIndex}: {response.quoteText}\n");
+
+                    // Add username as prefix to tweet
+                    response.quoteText = $"@{tdp.Tweet.User.ScreenNameResponse} {response.quoteText}";
+                    String tweet = DecideTweetText(response);
+                    UInt64 id = tweeter.MaybeReply(tweet, tdp.Tweet.StatusID, ActuallyTweet);
+                    replyCount++;
                 }
-
-                Int32 responsesIndex = new Random().Next(count) + 1;
-                Quote response = responsesList[responsesIndex];
-                LambdaLogger.Log($"    Response {responsesIndex}: {response.quoteText}\n");
-
-                // Add username as prefix to tweet
-                response.quoteText = $"@{tweeted.User.ScreenNameResponse} {response.quoteText}";
-                String tweet = DecideTweetText(response);
-                UInt64 id = tweeter.MaybeReply(tweet, tweeted.StatusID, ActuallyTweet);
             }
 
             if (replyCount > 0)
             {
                 var timeUtc = DateTime.UtcNow;
                 LambdaLogger.Log($"    UTC now: {timeUtc}\n");
-                //TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
-                //DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
-                //LambdaLogger.Log($"    New York: {easternTime}\n");
+                //LambdaLogger.Log($"    New York: {TimeZoneInfo.ConvertTimeFromUtc(timeUtc, TimeZoneInfo.FindSystemTimeZoneById("America/New_York"))}\n");
 
                 if (ActuallyTweet)
                 {
-                    //Boolean isWritten = db.SetLastReplyTime(easternTime, replyCount).Result;
                     Boolean isWritten = db.SetLastReplyTime(timeUtc, replyCount).Result;
                     if (!isWritten)
                     {

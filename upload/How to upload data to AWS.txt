@@ -1,4 +1,4 @@
-Download the Wisdom Of Avasarala spreadsheet as a csv and save it as quotes.csv in D:\Code\Git\Falconism\AvasaralaBot\upload
+Download the Wisdom Of Avasarala spreadsheet as a csv and save it as quotes.csv in D:\Code\Git\OldPotatoes\AvasaralaBot\upload
 
 Go to the AWS S3 Buckets console
 	If avasarala-upload exists,
@@ -23,7 +23,7 @@ Go to the AWS CloudFormation console
 	Select 'Template is ready'
 	Select 'Upload a template file'
 	Hit 'Choose File'
-	Select D:\Code\Git\Falconism\AvasaralaBot\upload\CSVToDynamo.template
+	Select D:\Code\Git\OldPotatoes\AvasaralaBot\upload\CSVToDynamo.template
 	Hit 'Next' button
 
 On the 'Specify stack details' page
