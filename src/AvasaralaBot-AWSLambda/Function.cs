@@ -172,33 +172,34 @@ namespace AvasaralaBot_AWSLambda
             LambdaLogger.Log($"    Quote: {JsonConvert.SerializeObject(quote)}\n");
             String tweet = "";
 
+            // For some reason 280 characters throws an errors
             if (quote.medium == "Book")
             {
                 tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}\n#Avasarala #TheExpanse";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}\n#TheExpanse";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.book}, {quote.chapter}";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.book}";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = quote.quoteText;
-                if (tweet.Length > 280)
-                    tweet = $"{quote.quoteText.Substring(0, 279)}…";
+                if (tweet.Length > 279)
+                    tweet = $"{quote.quoteText.Substring(0, 278)}…";
             }
             else if (quote.medium == "TV")
             {
                 tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}\n#Avasarala #TheExpanse";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}\n#TheExpanse";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.season}, {quote.episode}";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = $"{quote.quoteText}\n\n{quote.episode}";
-                if (tweet.Length > 280)
+                if (tweet.Length > 279)
                     tweet = quote.quoteText;
-                if (tweet.Length > 280)
-                    tweet = $"{quote.quoteText.Substring(0, 279)}…";
+                if (tweet.Length > 279)
+                    tweet = $"{quote.quoteText.Substring(0, 278)}…";
             }
 
             return tweet;
