@@ -28,21 +28,37 @@ namespace BotDynamoDB
             return await _context.LoadAsync<Quote>(uuid);
         }
 
-        public async Task<List<Quote>> GetAllStatements()
+        public async Task<List<Quote>> GetAllStatements(Boolean untweeted=true)
         {
             LambdaLogger.Log($"GetAllStatements()\n");
             var statements = new List<Quote>();
 
-            var request = new ScanRequest
+            ScanRequest request;
+            if (untweeted)
             {
-                TableName = "WisdomOfAvasarala",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                request = new ScanRequest
                 {
-                    { ":s", new AttributeValue { S = "1" } },
-                    { ":t", new AttributeValue { S = "0" } }
-                },
-                FilterExpression = "statement = :s AND tweeted = :t"
-            };
+                    TableName = "WisdomOfAvasarala",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    {
+                        { ":s", new AttributeValue { S = "1" } },
+                        { ":t", new AttributeValue { S = "0" } }
+                    },
+                    FilterExpression = "statement = :s AND tweeted = :t"
+                };
+            }
+            else
+            {
+                request = new ScanRequest
+                {
+                    TableName = "WisdomOfAvasarala",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    {
+                        { ":s", new AttributeValue { S = "1" } }
+                    },
+                    FilterExpression = "statement = :s"
+                };
+            }
 
             var resp = await _client.ScanAsync(request);
 

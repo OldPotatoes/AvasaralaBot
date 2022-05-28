@@ -59,7 +59,12 @@ namespace AvasaralaBot_AWSLambda
             if (count <= 1)
             {
                 LambdaLogger.Log($"    Published all statements, time to reset\n");
+
+                statementsList = db.GetAllStatements(false).Result;
+                LambdaLogger.Log($"    QuoteCollection contains {statementsList.Count} statements'\n");
+
                 db.ResetTweetedValues(statementsList, ActuallyTweet).Wait();
+                count = statementsList.Count;
             }
 
             Int32 quoteIndex = new Random().Next(count);
@@ -71,7 +76,7 @@ namespace AvasaralaBot_AWSLambda
             db.SetTweeted(statement, ActuallyTweet);
         }
 
-        private async void ReplyToMentions(DBAccess db, Tweeter tweeter)
+        private void ReplyToMentions(DBAccess db, Tweeter tweeter)
         {
             LambdaLogger.Log($"ReplyToMentions()\n");
             List<Quote> responsesList = db.GetAllResponses().Result;
